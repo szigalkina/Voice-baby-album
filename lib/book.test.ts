@@ -30,57 +30,41 @@ function entry(photosCount: number, recordedAt: string): Entry {
 
 const BD = "2026-03-10";
 
-describe("buildBookPages", () => {
-  it("gives a photo entry a spread: text left, photos right", () => {
-    const pages = buildBookPages([entry(2, "2026-04-01T10:00:00Z")], BD);
-    expect(pages.map((p) => p.kind)).toEqual(["text", "photos"]);
-    expect(pages.map((p) => p.side)).toEqual(["left", "right"]);
-  });
-
-  it("alternates spread orientation between photo entries", () => {
-    const pages = buildBookPages(
-      [entry(1, "2026-04-01T10:00:00Z"), entry(1, "2026-04-02T10:00:00Z")],
-      BD
-    );
-    expect(pages.map((p) => p.kind)).toEqual(["text", "photos", "photos", "text"]);
-  });
-
-  it("renders a no-photo entry as one text page and compacts the next entry onto the facing page", () => {
-    const pages = buildBookPages(
-      [entry(0, "2026-04-01T10:00:00Z"), entry(3, "2026-04-02T10:00:00Z")],
-      BD
-    );
-    expect(pages.map((p) => p.kind)).toEqual(["text", "combo"]);
-    expect(pages.map((p) => p.side)).toEqual(["left", "right"]);
-  });
-
-  it("handles two consecutive no-photo entries as two text pages, then resumes spreads", () => {
+describe("buildBookPages (one page per entry)", () => {
+  it("maps every entry to exactly one page, sides alternating", () => {
     const pages = buildBookPages(
       [
-        entry(0, "2026-04-01T10:00:00Z"),
+        entry(2, "2026-04-01T10:00:00Z"),
         entry(0, "2026-04-02T10:00:00Z"),
-        entry(1, "2026-04-03T10:00:00Z"),
+        entry(4, "2026-04-03T10:00:00Z"),
       ],
       BD
     );
-    expect(pages.map((p) => p.kind)).toEqual(["text", "text", "text", "photos"]);
-    // spread parity is preserved: the photo entry starts on a left page
-    expect(pages[2].side).toBe("left");
-  });
-
-  it("attaches a month label when the month of life changes", () => {
-    const pages = buildBookPages(
-      [entry(1, "2026-03-15T10:00:00Z"), entry(1, "2026-05-20T10:00:00Z")],
-      BD
-    );
-    expect(pages[0].monthLabel).toBe("Month 1 — March");
-    expect(pages[1].monthLabel).toBeUndefined(); // photo page of same entry
-    expect(pages[2].monthLabel).toBe("Month 3 — May"); // photos-left page starts new month
+    expect(pages).toHaveLength(3);
+    expect(pages.map((p) => p.side)).toEqual(["left", "right", "left"]);
   });
 
   it("caps photos at 4 per page", () => {
     const pages = buildBookPages([entry(6, "2026-04-01T10:00:00Z")], BD);
-    const photoPage = pages.find((p) => p.kind === "photos")!;
-    expect(photoPage.photos.length).toBe(4);
+    expect(pages[0].photos).toHaveLength(4);
+  });
+
+  it("keeps zero-photo entries as photo-less pages", () => {
+    const pages = buildBookPages([entry(0, "2026-04-01T10:00:00Z")], BD);
+    expect(pages[0].photos).toHaveLength(0);
+  });
+
+  it("attaches a month label only when the month of life changes", () => {
+    const pages = buildBookPages(
+      [
+        entry(1, "2026-03-15T10:00:00Z"),
+        entry(1, "2026-03-20T10:00:00Z"),
+        entry(1, "2026-05-20T10:00:00Z"),
+      ],
+      BD
+    );
+    expect(pages[0].monthLabel).toBe("Month 1 — March");
+    expect(pages[1].monthLabel).toBeUndefined();
+    expect(pages[2].monthLabel).toBe("Month 3 — May");
   });
 });

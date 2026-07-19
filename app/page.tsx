@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
-import { eq } from "drizzle-orm";
 import { getUserId } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { babies } from "@/lib/schema";
+import { getBabyForUser } from "@/lib/guard";
 import JournalClient from "@/components/JournalClient";
 import Nav from "@/components/Nav";
 
@@ -12,7 +11,7 @@ export default async function Home() {
   const userId = await getUserId();
   if (!userId) redirect("/signin");
   const db = await getDb();
-  const [baby] = await db.select().from(babies).where(eq(babies.userId, userId));
+  const baby = await getBabyForUser(db, userId);
   if (!baby) redirect("/onboarding");
   return (
     <>

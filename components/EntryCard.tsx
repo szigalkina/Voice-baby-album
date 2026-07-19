@@ -15,16 +15,15 @@ export default function EntryCard({
   entry,
   onChange,
   onDelete,
+  onEdit,
   celebrate = false,
 }: {
   entry: Entry;
   onChange: (e: Entry) => void;
   onDelete: (id: string) => void;
+  onEdit: (e: Entry) => void;
   celebrate?: boolean;
 }) {
-  const [editing, setEditing] = useState(false);
-  const [title, setTitle] = useState(entry.title ?? "");
-  const [summary, setSummary] = useState(entry.summary ?? "");
   const [busy, setBusy] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -41,11 +40,6 @@ export default function EntryCard({
     } finally {
       setBusy(false);
     }
-  }
-
-  async function saveEdit() {
-    await patch({ title, summary });
-    setEditing(false);
   }
 
   async function remove() {
@@ -105,17 +99,9 @@ export default function EntryCard({
           <p className="text-xs uppercase tracking-wider text-ink-soft">
             {fmtDate(entry.recordedAt)}
           </p>
-          {editing ? (
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-cream px-3 py-2 font-display text-xl"
-            />
-          ) : (
-            <h3 className="mt-0.5 font-display text-2xl font-semibold leading-snug">
-              {entry.title}
-            </h3>
-          )}
+          <h3 className="mt-0.5 font-display text-2xl font-semibold leading-snug">
+            {entry.title}
+          </h3>
         </div>
         <div className="relative shrink-0">
           <button
@@ -130,8 +116,8 @@ export default function EntryCard({
               <button
                 className="block w-full px-4 py-2.5 text-left hover:bg-milk"
                 onClick={() => {
-                  setEditing(true);
                   setMenuOpen(false);
+                  onEdit(entry);
                 }}
               >
                 ✏️ Edit
@@ -173,39 +159,11 @@ export default function EntryCard({
         </span>
       )}
 
-      {editing ? (
-        <div className="mt-2">
-          <textarea
-            value={summary}
-            onChange={(e) => setSummary(e.target.value)}
-            rows={3}
-            className="w-full rounded-xl border border-cream px-3 py-2 text-[15px]"
-          />
-          <div className="mt-2 flex gap-2">
-            <button
-              onClick={saveEdit}
-              disabled={busy}
-              className="rounded-full bg-apricot px-4 py-2 text-sm font-medium text-white shadow disabled:opacity-60"
-            >
-              Save
-            </button>
-            <button
-              onClick={() => setEditing(false)}
-              className="rounded-full px-4 py-2 text-sm text-ink-soft"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      ) : (
-        <>
-          <p className="mt-2 text-[15px] leading-relaxed">{entry.summary}</p>
-          {entry.quote && (
-            <blockquote className="mt-3 border-l-[3px] border-apricot/50 pl-3 font-display italic text-ink-soft">
-              “{entry.quote}”
-            </blockquote>
-          )}
-        </>
+      <p className="mt-2 text-[15px] leading-relaxed">{entry.summary}</p>
+      {entry.quote && (
+        <blockquote className="mt-3 border-l-[3px] border-apricot/50 pl-3 font-display italic text-ink-soft">
+          “{entry.quote}”
+        </blockquote>
       )}
 
       <audio controls src={entry.audioUrl} className="mt-4 w-full h-10" preload="none" />

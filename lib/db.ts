@@ -7,11 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
   email text NOT NULL UNIQUE,
   created_at timestamp NOT NULL DEFAULT now()
 );
-CREATE TABLE IF NOT EXISTS login_tokens (
-  token text PRIMARY KEY,
-  email text NOT NULL,
-  expires_at timestamp NOT NULL
-);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash text;
 CREATE TABLE IF NOT EXISTS babies (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES users(id),
@@ -37,6 +33,16 @@ CREATE TABLE IF NOT EXISTS photos (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   entry_id uuid NOT NULL REFERENCES entries(id) ON DELETE CASCADE,
   blob_url text NOT NULL,
+  created_at timestamp NOT NULL DEFAULT now()
+);
+CREATE TABLE IF NOT EXISTS baby_members (
+  baby_id uuid NOT NULL REFERENCES babies(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES users(id),
+  UNIQUE (baby_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS invites (
+  code text PRIMARY KEY,
+  baby_id uuid NOT NULL REFERENCES babies(id) ON DELETE CASCADE,
   created_at timestamp NOT NULL DEFAULT now()
 );
 `;

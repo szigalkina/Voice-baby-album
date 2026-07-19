@@ -3,13 +3,20 @@ import { pgTable, text, timestamp, boolean, uuid, date } from "drizzle-orm/pg-co
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
   email: text("email").notNull().unique(),
+  passwordHash: text("password_hash"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-export const loginTokens = pgTable("login_tokens", {
-  token: text("token").primaryKey(),
-  email: text("email").notNull(),
-  expiresAt: timestamp("expires_at").notNull(),
+// Second parent joins the album by redeeming an invite code.
+export const babyMembers = pgTable("baby_members", {
+  babyId: uuid("baby_id").notNull().references(() => babies.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id),
+});
+
+export const invites = pgTable("invites", {
+  code: text("code").primaryKey(),
+  babyId: uuid("baby_id").notNull().references(() => babies.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const babies = pgTable("babies", {

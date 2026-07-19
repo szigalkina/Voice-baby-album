@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { babies } from "@/lib/schema";
-import { requireUser } from "@/lib/guard";
+import { getBabyForUser, requireUser } from "@/lib/guard";
 
 export async function GET() {
   try {
     const userId = await requireUser();
     const db = await getDb();
-    const [baby] = await db.select().from(babies).where(eq(babies.userId, userId));
+    const baby = await getBabyForUser(db, userId);
     return NextResponse.json({ baby: baby ?? null });
   } catch (e) {
     if (e instanceof Response) return e;
@@ -27,8 +27,8 @@ export async function POST(req: Request) {
       );
     }
     const db = await getDb();
-    const existing = await db.select().from(babies).where(eq(babies.userId, userId));
-    if (existing.length) {
+    const existing = await getBabyForUser(db, userId);
+    if (existing) {
       return NextResponse.json({ error: "Baby already exists" }, { status: 409 });
     }
     const [baby] = await db

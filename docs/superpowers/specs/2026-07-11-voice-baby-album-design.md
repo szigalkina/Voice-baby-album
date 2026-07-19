@@ -120,6 +120,12 @@ stored.
 
 ## Addendum (2026-07-19): Photo-book album layout
 
+> **Superseded same day:** the spread rule below was replaced by ONE RULE — every
+> entry is exactly one page with message and photos together (photo-less pages get
+> the centered-text treatment). Auth changed from magic links to email+password
+> accounts with partner invite codes (shared album). Every page is editable (text +
+> add/remove photos). See docs/ROADMAP.md for the forward plan.
+
 Per user direction with printed photo-book references, the album's default view is a
 **book**: swipeable paper pages with handwritten text (Caveat font, Cyrillic-capable).
 

@@ -6,6 +6,7 @@ import type { Baby, Entry } from "@/lib/types";
 import { monthLabel, monthNumber } from "@/lib/months";
 import { buildBookPages } from "@/lib/book";
 import BookPage from "./BookPage";
+import EditEntrySheet from "./EditEntrySheet";
 
 function ageLabel(birthdate: string): string {
   const months = monthNumber(birthdate, new Date()) - 1;
@@ -23,6 +24,7 @@ export default function AlbumClient({ baby }: { baby: Baby }) {
   const [view, setView] = useState<"book" | "list">("book");
   const [showAll, setShowAll] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Entry | null>(null);
 
   useEffect(() => {
     fetch("/api/entries")
@@ -123,8 +125,12 @@ export default function AlbumClient({ baby }: { baby: Baby }) {
             {/* Swipe through the book, one paper page at a time */}
             <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 px-8 pb-4 no-scrollbar">
               {pages.map((page, i) => (
-                <div key={`${page.entry.id}-${page.kind}`} className="snap-center shrink-0 w-[82%]">
-                  <BookPage page={page} number={i + 1} />
+                <div key={page.entry.id} className="snap-center shrink-0 w-[82%]">
+                  <BookPage
+                    page={page}
+                    number={i + 1}
+                    onEdit={() => setEditing(page.entry)}
+                  />
                 </div>
               ))}
               {/* back cover breathing room */}
@@ -214,6 +220,21 @@ export default function AlbumClient({ baby }: { baby: Baby }) {
             </div>
           )}
         </div>
+      )}
+
+      {editing && (
+        <EditEntrySheet
+          entry={editing}
+          onClose={() => setEditing(null)}
+          onSaved={(updated) =>
+            setEntries(
+              (prev) => prev?.map((e) => (e.id === updated.id ? updated : e)) ?? null
+            )
+          }
+          onDeleted={(id) =>
+            setEntries((prev) => prev?.filter((e) => e.id !== id) ?? null)
+          }
+        />
       )}
     </main>
   );
