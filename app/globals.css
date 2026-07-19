@@ -13,6 +13,9 @@
 
   --font-display: var(--font-fraunces), Georgia, serif;
   --font-body: var(--font-outfit), system-ui, sans-serif;
+  --font-hand: var(--font-caveat), "Segoe Script", cursive;
+
+  --color-paper: #fffdf7;
 }
 
 body {
@@ -78,4 +81,13 @@ body::before {
 
 .celebrate-pop {
   animation: celebrate-pop 0.7s ease-out both;
+}
+
+/* Book view: hide the horizontal scrollbar, keep swipe */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }

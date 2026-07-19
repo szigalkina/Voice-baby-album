@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Outfit } from "next/font/google";
+import { Caveat, Fraunces, Outfit } from "next/font/google";
 import "./globals.css";
 
 const fraunces = Fraunces({
@@ -11,6 +11,11 @@ const fraunces = Fraunces({
 const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
+});
+
+const caveat = Caveat({
+  variable: "--font-caveat",
+  subsets: ["latin", "cyrillic"],
 });
 
 export const metadata: Metadata = {
@@ -33,7 +38,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${fraunces.variable} ${outfit.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${outfit.variable} ${caveat.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col relative">{children}</body>
     </html>
   );

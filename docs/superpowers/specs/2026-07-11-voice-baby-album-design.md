@@ -117,3 +117,21 @@ stored.
 - PDF export (v2)
 - Native apps
 - Multiple children per account
+
+## Addendum (2026-07-19): Photo-book album layout
+
+Per user direction with printed photo-book references, the album's default view is a
+**book**: swipeable paper pages with handwritten text (Caveat font, Cyrillic-capable).
+
+- Entry **with photos** → full spread: one page handwritten message, facing page a
+  photo grid (squares, 2×2, max 4 shown). Orientation alternates spread to spread.
+- Entry **without photos** → single text page: message centered, date bottom-middle
+  but semi-central. The **next** entry is compacted onto the facing page (text +
+  photos on one page) so no spread looks empty. Spread parity is always preserved.
+- Photos are styled as prints (white matte border, soft shadow).
+- Month-of-life caption appears on the first page of each new month.
+- The previous list view remains as "All entries" for curation (album toggles,
+  show-everything filter).
+
+Layout engine: `lib/book.ts` (unit-tested). Renderer: `components/BookPage.tsx`,
+`components/AlbumClient.tsx`.
