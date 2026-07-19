@@ -2,7 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 
-type RecorderState = "idle" | "recording" | "uploading" | "denied" | "unsupported";
+type RecorderState = "idle" | "recording" | "denied" | "unsupported";
+
+const PROMPTS = [
+  "Tap and tell today's little story",
+  "What made you both smile today?",
+  "Any tiny firsts to remember?",
+  "What did those little hands discover?",
+  "One moment you never want to forget?",
+  "What sound did you hear today — a giggle, a babble?",
+];
+
+const BAR_COUNT = 9;
 
 export default function Recorder({
   onRecorded,
@@ -13,19 +24,27 @@ export default function Recorder({
 }) {
   const [state, setState] = useState<RecorderState>("idle");
   const [elapsed, setElapsed] = useState(0);
+  const [promptIdx, setPromptIdx] = useState(0);
+  const [levels, setLevels] = useState<number[]>(() => Array(BAR_COUNT).fill(4));
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const rafRef = useRef<number>(0);
 
   useEffect(() => {
     if (typeof window !== "undefined" && !("MediaRecorder" in window)) {
       setState("unsupported");
     }
+    setPromptIdx(Math.floor(Math.random() * PROMPTS.length));
   }, []);
 
   useEffect(() => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      cancelAnimationFrame(rafRef.current);
+      audioCtxRef.current?.close().catch(() => {});
       recorderRef.current?.stream.getTracks().forEach((t) => t.stop());
     };
   }, []);
@@ -36,6 +55,46 @@ export default function Recorder({
       if (MediaRecorder.isTypeSupported(m)) return m;
     }
     return "";
+  }
+
+  function startMeter(stream: MediaStream) {
+    // Live waveform is a nice-to-have — never let it break recording.
+    try {
+      const Ctx =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      const ctx = new Ctx();
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 64;
+      analyser.smoothingTimeConstant = 0.6;
+      source.connect(analyser);
+      audioCtxRef.current = ctx;
+      analyserRef.current = analyser;
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      const tick = () => {
+        analyser.getByteFrequencyData(data);
+        const next: number[] = [];
+        for (let i = 0; i < BAR_COUNT; i++) {
+          // Sample low-to-mid voice frequencies across the bins.
+          const v = data[2 + i * 2] ?? 0;
+          next.push(4 + Math.round((v / 255) * 30));
+        }
+        setLevels(next);
+        rafRef.current = requestAnimationFrame(tick);
+      };
+      tick();
+    } catch {
+      /* meter unavailable — timer alone is fine */
+    }
+  }
+
+  function stopMeter() {
+    cancelAnimationFrame(rafRef.current);
+    audioCtxRef.current?.close().catch(() => {});
+    audioCtxRef.current = null;
+    analyserRef.current = null;
+    setLevels(Array(BAR_COUNT).fill(4));
   }
 
   async function start() {
@@ -49,15 +108,18 @@ export default function Recorder({
       };
       rec.onstop = () => {
         stream.getTracks().forEach((t) => t.stop());
+        stopMeter();
         const type = rec.mimeType || "audio/webm";
         const blob = new Blob(chunksRef.current, { type });
         setState("idle");
+        setPromptIdx((i) => (i + 1) % PROMPTS.length);
         if (blob.size > 0) onRecorded(blob, type.split(";")[0]);
       };
       recorderRef.current = rec;
       rec.start();
       setElapsed(0);
       timerRef.current = setInterval(() => setElapsed((s) => s + 1), 1000);
+      startMeter(stream);
       setState("recording");
     } catch {
       setState("denied");
@@ -69,7 +131,7 @@ export default function Recorder({
     recorderRef.current?.stop();
   }
 
-  const mm = String(Math.floor(elapsed / 60)).padStart(1, "0");
+  const mm = String(Math.floor(elapsed / 60));
   const ss = String(elapsed % 60).padStart(2, "0");
 
   if (state === "unsupported") {
@@ -86,35 +148,48 @@ export default function Recorder({
         <button
           onClick={stop}
           aria-label="Stop recording"
-          className="recording-pulse h-24 w-24 rounded-full bg-apricot-deep text-white shadow-xl flex items-center justify-center active:scale-95 transition"
+          className="recording-pulse h-28 w-28 rounded-full bg-apricot-deep text-white shadow-xl flex items-center justify-center active:scale-95 transition"
         >
-          <span className="h-7 w-7 rounded bg-white" />
+          <span className="h-8 w-8 rounded-lg bg-white" />
         </button>
       ) : (
         <button
           onClick={start}
           disabled={uploading}
           aria-label="Start recording"
-          className="h-24 w-24 rounded-full bg-apricot text-white shadow-xl flex items-center justify-center text-4xl active:scale-95 transition disabled:opacity-50"
+          className="group h-28 w-28 rounded-full bg-apricot text-white shadow-xl flex items-center justify-center text-5xl transition active:scale-95 hover:scale-105 hover:shadow-2xl disabled:opacity-50"
         >
           {uploading ? (
-            <span className="h-8 w-8 rounded-full border-[3px] border-white/40 border-t-white animate-spin" />
+            <span className="h-9 w-9 rounded-full border-[3px] border-white/40 border-t-white animate-spin" />
           ) : (
-            "🎙️"
+            <span className="transition group-hover:-rotate-6">🎙️</span>
           )}
         </button>
       )}
-      <p className="text-sm text-ink-soft h-5">
+
+      {/* Live waveform while recording */}
+      <div className="h-10 flex items-center gap-1" aria-hidden>
         {state === "recording" ? (
-          <span className="font-medium text-apricot-deep">
-            {mm}:{ss} · tap to finish
-          </span>
-        ) : uploading ? (
-          "Listening to your note…"
+          levels.map((h, i) => (
+            <span
+              key={i}
+              className="w-1.5 rounded-full bg-apricot transition-[height] duration-75"
+              style={{ height: `${h}px` }}
+            />
+          ))
         ) : (
-          "Tap and tell today's little story"
+          <span className="text-sm text-ink-soft text-center px-4">
+            {uploading ? "Listening to your note…" : PROMPTS[promptIdx]}
+          </span>
         )}
-      </p>
+      </div>
+
+      {state === "recording" && (
+        <p className="text-sm font-medium text-apricot-deep -mt-2">
+          {mm}:{ss} · tap to finish
+        </p>
+      )}
+
       {state === "denied" && (
         <p className="text-center text-sm rounded-2xl bg-blush px-4 py-3 max-w-xs">
           We need microphone access to record. Enable it for this site in your browser

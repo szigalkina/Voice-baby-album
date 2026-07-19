@@ -2,13 +2,22 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Baby, Entry } from "@/lib/types";
+import { monthNumber } from "@/lib/months";
 import Recorder from "./Recorder";
 import EntryCard from "./EntryCard";
+
+function ageLabel(birthdate: string): string {
+  const months = monthNumber(birthdate, new Date()) - 1;
+  if (months < 1) return "brand new";
+  if (months === 1) return "1 month old";
+  return `${months} months old`;
+}
 
 export default function JournalClient({ baby }: { baby: Baby }) {
   const [entries, setEntries] = useState<Entry[] | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [celebrateId, setCelebrateId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/entries")
@@ -28,6 +37,10 @@ export default function JournalClient({ baby }: { baby: Baby }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Upload failed");
       setEntries((prev) => [data.entry, ...(prev ?? [])]);
+      if (data.entry.isMilestone && data.entry.status === "ready") {
+        setCelebrateId(data.entry.id);
+        setTimeout(() => setCelebrateId(null), 1600);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong — try again?");
     } finally {
@@ -46,10 +59,13 @@ export default function JournalClient({ baby }: { baby: Baby }) {
   return (
     <main className="relative z-10 mx-auto w-full max-w-md flex-1 px-4 pb-32">
       <header className="flex items-center justify-between pt-6 pb-2">
-        <h1 className="font-display text-2xl font-semibold">
-          {baby.name}
-          <span className="text-ink-soft font-normal">&rsquo;s journal</span>
-        </h1>
+        <div>
+          <h1 className="font-display text-2xl font-semibold">
+            {baby.name}
+            <span className="text-ink-soft font-normal">&rsquo;s journal</span>
+          </h1>
+          <p className="text-xs text-ink-soft mt-0.5">{ageLabel(baby.birthdate)}</p>
+        </div>
         <form action="/api/auth/signout" method="post">
           <button className="text-xs text-ink-soft underline underline-offset-2">
             Sign out
@@ -79,7 +95,12 @@ export default function JournalClient({ baby }: { baby: Baby }) {
         ) : (
           entries.map((e, i) => (
             <div key={e.id} style={{ animationDelay: `${Math.min(i, 6) * 60}ms` }}>
-              <EntryCard entry={e} onChange={update} onDelete={remove} />
+              <EntryCard
+                entry={e}
+                onChange={update}
+                onDelete={remove}
+                celebrate={celebrateId === e.id}
+              />
             </div>
           ))
         )}

@@ -9,14 +9,18 @@ function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, { month: "long", day: "numeric" });
 }
 
+const SPARKS = ["✨", "🎉", "⭐", "✨", "💛", "🎈"];
+
 export default function EntryCard({
   entry,
   onChange,
   onDelete,
+  celebrate = false,
 }: {
   entry: Entry;
   onChange: (e: Entry) => void;
   onDelete: (id: string) => void;
+  celebrate?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [title, setTitle] = useState(entry.title ?? "");
@@ -147,8 +151,25 @@ export default function EntryCard({
       </div>
 
       {entry.isMilestone && (
-        <span className="mt-2 inline-block rounded-full bg-sage/20 text-sage-deep px-3 py-1 text-xs font-semibold">
+        <span
+          className={`relative mt-2 inline-block rounded-full bg-sage/20 text-sage-deep px-3 py-1 text-xs font-semibold ${
+            celebrate ? "celebrate-pop" : ""
+          }`}
+        >
           ✨ milestone
+          {celebrate &&
+            SPARKS.map((s, i) => (
+              <span
+                key={i}
+                className="spark text-lg"
+                style={{
+                  ["--angle" as string]: `${(360 / SPARKS.length) * i - 90}deg`,
+                  animationDelay: `${i * 40}ms`,
+                }}
+              >
+                {s}
+              </span>
+            ))}
         </span>
       )}
 
