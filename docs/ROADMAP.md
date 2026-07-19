@@ -111,26 +111,92 @@ uploads it to Albelli/any print service themselves. No print API integration.
 4. Add an "⬇ Export for print" button in the Album header (book view only).
 5. Verify: export locally with demo data, open PDF, check page size and fonts.
 
-## ACTION 5 — Native apps (owner decision: currently PWA-first)
+## ACTION 5 — Ship to the App Store (and optionally Google Play)
 
-The web app is already installable (manifest + icons). True app-store presence:
+Owner decision 2026-07-19: YES to app stores. Apple Developer membership already
+active. Xcode 26.6 installed on the build Mac. Strategy: Capacitor shell over the
+production site (no rewrite). Do the phases IN ORDER.
 
-**Option A — Capacitor wrapper (recommended, ~1–2 days):**
-1. `npm install @capacitor/core @capacitor/cli && npx cap init "Voice Baby Album" com.voicebabyalbum.app`
-2. Configure `capacitor.config.ts` with `server: { url: "https://<prod-url>" }`
-   (thin shell over the deployed site — no static export needed).
-3. `npx cap add ios && npx cap add android`, open in Xcode/Android Studio, set
-   icons/splash from `public/icon-512.png`, add microphone + photo permissions to
-   Info.plist / AndroidManifest.
-4. Costs: Apple Developer $99/year, Google Play $25 one-time. Needs a Mac with
-   Xcode for iOS builds (this machine qualifies).
-5. STOP before store submission — owner reviews listing copy and screenshots.
+### Phase 5.0 — Prerequisites (blocking)
+1. ACTION 1 fully done: production URL live with database + HTTPS, full flow
+   verified on a real phone in the browser. The app shell loads this URL — a
+   broken site means a broken app.
+2. Create `app/privacy/page.tsx`: a plain-language privacy policy page (what is
+   stored: email, password hash, voice recordings, transcripts, photos; where:
+   Vercel/Neon servers; AI processing via Google Gemini; no ads, no data sale;
+   contact email; deletion: delete entries in-app or email the owner). App Store
+   review REQUIRES a public privacy policy URL.
 
-**Option B — stay PWA:** $0, installable from browser, already done. Reminder
-push notifications on iOS PWAs work since iOS 16.4 via Web Push (see ACTION 6).
+### Phase 5.1 — Capacitor shell (once)
+1. `npm install @capacitor/core @capacitor/cli @capacitor/ios`
+2. `npx cap init "Voice Baby Album" com.voicebabyalbum.app --web-dir public`
+   (web-dir is a formality — we load the remote URL).
+3. Edit `capacitor.config.ts`: add
+   `server: { url: "https://<PROD-URL>", cleartext: false }`.
+4. `npx cap add ios`
+5. Permissions — in `ios/App/App/Info.plist` add:
+   - `NSMicrophoneUsageDescription` = "Voice Baby Album records your voice notes
+     about your baby."
+   - `NSCameraUsageDescription` = "Take photos of the moment to add to a memory."
+   - `NSPhotoLibraryUsageDescription` = "Choose photos to add to your baby's album."
+6. Icons/splash: `npm install -D @capacitor/assets`, put `public/icon-512.png` at
+   `assets/icon.png` (1024px version: upscale the SVG with qlmanage at -s 1024),
+   milk `#faf6f0` splash background, run `npx capacitor-assets generate --ios`.
+7. `npx cap open ios` → in Xcode: set Team (owner's Apple Developer team),
+   bundle id `com.voicebabyalbum.app`, run on Simulator → sign in, record
+   (simulator mic works), verify journal + album render.
+8. Run on the owner's real iPhone via cable once — verify mic + photo picker.
 
-**Do NOT rewrite in React Native/Expo.** Not justified; the whole product is one
-mobile web UI.
+### Phase 5.2 — Review-risk hardening (do BEFORE submitting)
+Apple guideline 4.2 rejects bare website wrappers. Make the shell feel native:
+1. `npm install @capacitor/haptics @capacitor/status-bar @capacitor/splash-screen`
+2. In the web app, detect Capacitor (`window.Capacitor?.isNativePlatform()`):
+   trigger a light haptic on record start/stop and on milestone celebration.
+3. Status bar: match milk background (StatusBar.setBackgroundColor / style).
+4. Native push notifications (replaces ACTION 6's web-push on iOS):
+   `@capacitor/push-notifications`, register token, store in the
+   `push_subscriptions` table with a `platform` column, send via APNs from the
+   cron route (use `node-apn` or a service; simplest: keep web-push for browsers
+   AND APNs for the app). This is the single strongest 4.2 mitigation.
+5. In App Store Connect "App Review Information" notes, describe the native
+   features (mic recording, push, haptics) and provide a demo account:
+   create `demo@voicebabyalbum.app` with password, pre-filled with 3 demo
+   entries + photos (use the seed flow from the dev scripts).
+
+### Phase 5.3 — TestFlight (both parents, this week)
+1. Xcode → Product → Archive → Distribute → App Store Connect → Upload.
+2. appstoreconnect.apple.com → create the app record (name "Voice Baby Album",
+   primary language, bundle id, SKU `vba-001`).
+3. TestFlight tab → add both parents as internal testers → they install via the
+   TestFlight app. NOTE: builds expire after 90 days — the public release
+   (Phase 5.4) is the durable path, TestFlight is not a substitute.
+
+### Phase 5.4 — App Store release
+1. Screenshots: 6.9" (1320×2868) and 6.5" (1284×2778) — take from Simulator
+   (record screen: signin, journal with entries, book page with photos, edit
+   sheet). 4–6 screenshots.
+2. Listing copy: subtitle "Your baby's year, in your voice"; description from
+   README's first paragraph; keywords: baby journal, baby book, voice diary,
+   milestones, memory book, first year.
+3. App Privacy questionnaire (answer honestly): collects Contact Info (email),
+   User Content (photos, audio, other user content), linked to identity, not
+   used for tracking. Age rating: 4+.
+4. Privacy policy URL: `https://<PROD-URL>/privacy` (from Phase 5.0).
+5. Submit for review. If rejected under 4.2: reply pointing at push
+   notifications, mic integration, haptics; if still rejected, the fallback is
+   bundling the UI as static assets in the app (bigger job: split the frontend
+   to talk to the API cross-origin — only do this if actually rejected twice).
+
+### Phase 5.5 — Google Play (optional, $25 one-time)
+The $25 is Google's ONE-TIME lifetime registration fee for a Google Play
+developer account (play.google.com/console) — it exists purely to publish
+Android apps. Skip it entirely if both parents use iPhones; buy it only when an
+Android user needs the app. Then: `npm install @capacitor/android`,
+`npx cap add android`, same permissions in `AndroidManifest.xml` (RECORD_AUDIO,
+CAMERA, READ_MEDIA_IMAGES), `npx capacitor-assets generate --android`, build a
+signed AAB in Android Studio, upload to Play Console, fill the Data Safety form
+(mirror the Apple answers). NOTE: new personal Play accounts require a 12-person
+/ 14-day closed test before production release — factor in that delay.
 
 ## ACTION 6 — Gentle reminders (Web Push)
 
@@ -168,7 +234,7 @@ mobile web UI.
 | Vercel Blob (audio + photos) | ~$0.02/GB-month stored; a full first year (≈500 photos ≈ 2 GB + audio ≈ 0.5 GB) ≈ **pennies/month** |
 | Gemini Flash free tier | $0 (1,500 requests/day ≫ needed) |
 | Resend free tier | $0 (3,000 emails/month) |
-| Apple App Store (only if ACTION 5A) | $99/year |
-| Google Play (only if ACTION 5A) | $25 once |
+| Apple App Store | already covered by owner's membership |
+| Google Play (only if Android needed, Phase 5.5) | $25 once, lifetime |
 
 So: web app ≈ **$0/month** at family scale. App stores are the only real cost.
