@@ -16,6 +16,8 @@ const outfit = Outfit({
 export const metadata: Metadata = {
   title: "Voice Baby Album",
   description: "Your baby's first year, told in your own voice.",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Baby Album" },
+  icons: { apple: "/icon-192.png" },
 };
 
 export const viewport: Viewport = {
