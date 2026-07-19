@@ -26,6 +26,11 @@
   --font-hand: var(--font-marck), "Segoe Script", cursive;
 }
 
+:focus-visible {
+  outline: 1px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
 body {
   background: var(--color-bone);
   color: var(--color-ink);

@@ -8,6 +8,11 @@ CREATE TABLE IF NOT EXISTS users (
   created_at timestamp NOT NULL DEFAULT now()
 );
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash text;
+CREATE TABLE IF NOT EXISTS reset_tokens (
+  token text PRIMARY KEY,
+  user_id uuid NOT NULL REFERENCES users(id),
+  expires_at timestamp NOT NULL
+);
 CREATE TABLE IF NOT EXISTS babies (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES users(id),
@@ -45,6 +50,7 @@ CREATE TABLE IF NOT EXISTS invites (
   baby_id uuid NOT NULL REFERENCES babies(id) ON DELETE CASCADE,
   created_at timestamp NOT NULL DEFAULT now()
 );
+ALTER TABLE babies ADD COLUMN IF NOT EXISTS share_token text;
 `;
 
 // Both drivers get the DDL one statement at a time — Neon's HTTP driver

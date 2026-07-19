@@ -96,6 +96,16 @@ export default function SignInPage() {
             {busy ? "one moment…" : mode === "login" ? "sign in" : "create account"}
           </button>
           {error && <p className="text-sm text-center text-umber">{error}</p>}
+          {mode === "login" && (
+            <p className="text-center pt-1">
+              <a
+                href="/reset"
+                className="label-caps text-ink-soft underline underline-offset-4"
+              >
+                forgot password?
+              </a>
+            </p>
+          )}
         </form>
       </div>
     </main>

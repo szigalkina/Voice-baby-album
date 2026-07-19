@@ -75,3 +75,22 @@ export async function readStoredFile(
     contentType: res.headers.get("content-type") ?? "application/octet-stream",
   };
 }
+
+// Best-effort removal of the underlying file when a photo/entry is deleted.
+export async function deleteStoredFile(url: string): Promise<void> {
+  try {
+    if (url.startsWith("/api/media/")) {
+      const blobUrl = decodeURIComponent(url.slice("/api/media/".length));
+      const { del } = await import("@vercel/blob");
+      await del(blobUrl);
+    } else if (url.startsWith("/api/files/")) {
+      const rel = url.replace("/api/files/", "");
+      await fs.unlink(path.join(process.cwd(), ".data", "uploads", ...rel.split("/")));
+    } else if (url.startsWith("https://") && process.env.BLOB_READ_WRITE_TOKEN) {
+      const { del } = await import("@vercel/blob");
+      await del(url);
+    }
+  } catch {
+    /* orphaned files are a cost, not a correctness problem */
+  }
+}

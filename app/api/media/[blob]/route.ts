@@ -1,34 +1,56 @@
 import { and, eq } from "drizzle-orm";
-import { entries, photos } from "@/lib/schema";
+import { babies, entries, photos } from "@/lib/schema";
 import { requireBaby } from "@/lib/guard";
+import { getDb } from "@/lib/db";
 import { mediaResponse } from "@/lib/http";
 
-// Authenticated gateway to private blob storage. Only serves a file if it
-// belongs to the signed-in user's baby (as audio or photo). Supports Range
-// requests — required for audio playback in Safari.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function fileBelongsToBaby(db: any, storedUrl: string, babyId: string) {
+  const [audio] = await db
+    .select({ id: entries.id })
+    .from(entries)
+    .where(and(eq(entries.audioUrl, storedUrl), eq(entries.babyId, babyId)));
+  if (audio) return true;
+  const [photo] = await db
+    .select({ id: photos.id })
+    .from(photos)
+    .innerJoin(entries, eq(photos.entryId, entries.id))
+    .where(and(eq(photos.blobUrl, storedUrl), eq(entries.babyId, babyId)));
+  return !!photo;
+}
+
+// Authenticated gateway to private blob storage. Two ways in:
+// - a signed-in parent (session cookie), for their own baby's files
+// - a share token (?share=…), read-only, for that album's files only
+// Supports Range requests — required for audio playback in Safari.
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ blob: string }> }
 ) {
   try {
-    const { baby, db } = await requireBaby();
     const { blob } = await params; // Next decodes the segment → raw blob URL
     const storedUrl = `/api/media/${encodeURIComponent(blob)}`;
+    const shareToken = new URL(req.url).searchParams.get("share");
 
-    const [audio] = await db
-      .select({ id: entries.id })
-      .from(entries)
-      .where(and(eq(entries.audioUrl, storedUrl), eq(entries.babyId, baby.id)));
-    let owned = !!audio;
-    if (!owned) {
-      const [photo] = await db
-        .select({ id: photos.id })
-        .from(photos)
-        .innerJoin(entries, eq(photos.entryId, entries.id))
-        .where(and(eq(photos.blobUrl, storedUrl), eq(entries.babyId, baby.id)));
-      owned = !!photo;
+    let babyId: string;
+    let db;
+    if (shareToken) {
+      db = await getDb();
+      const [shared] = await db
+        .select({ id: babies.id })
+        .from(babies)
+        .where(eq(babies.shareToken, shareToken));
+      if (!shared) return new Response("Not found", { status: 404 });
+      babyId = shared.id;
+    } else {
+      const ctx = await requireBaby();
+      db = ctx.db;
+      babyId = ctx.baby.id;
     }
-    if (!owned) return new Response("Not found", { status: 404 });
+
+    if (!(await fileBelongsToBaby(db, storedUrl, babyId))) {
+      return new Response("Not found", { status: 404 });
+    }
 
     const { get } = await import("@vercel/blob");
     const res = await get(blob, { access: "private" });

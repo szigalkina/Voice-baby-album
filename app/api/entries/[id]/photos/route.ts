@@ -9,8 +9,6 @@ const EXT: Record<string, string> = {
   "image/png": "png",
   "image/webp": "webp",
   "image/gif": "gif",
-  "image/heic": "heic",
-  "image/heif": "heif",
 };
 
 export async function POST(
@@ -34,7 +32,11 @@ export async function POST(
     for (const f of files) {
       const ext = EXT[f.type];
       if (!ext) {
-        return NextResponse.json({ error: `Unsupported type ${f.type}` }, { status: 400 });
+        const msg =
+          f.type === "image/heic" || f.type === "image/heif"
+            ? "That photo is in iPhone's HEIC format — pick it from the photo picker again (iOS converts it automatically) or enable Settings → Camera → Formats → Most Compatible"
+            : `Unsupported image type (${f.type || "unknown"})`;
+        return NextResponse.json({ error: msg }, { status: 400 });
       }
       if (f.size > 15 * 1024 * 1024) {
         return NextResponse.json({ error: "Photo too large" }, { status: 413 });

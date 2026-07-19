@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
-import { entries } from "@/lib/schema";
+import { entries, photos } from "@/lib/schema";
 import { requireBaby } from "@/lib/guard";
+import { deleteStoredFile } from "@/lib/storage";
 
 export async function PATCH(
   req: Request,
@@ -40,11 +41,15 @@ export async function DELETE(
   try {
     const { baby, db } = await requireBaby();
     const { id } = await params;
+    const pics = await db.select().from(photos).where(eq(photos.entryId, id));
     const deleted = await db
       .delete(entries)
       .where(and(eq(entries.id, id), eq(entries.babyId, baby.id)))
       .returning();
     if (!deleted.length) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    // Rows are gone (photos cascade); now clear the files, best effort.
+    await deleteStoredFile(deleted[0].audioUrl);
+    for (const p of pics) await deleteStoredFile(p.blobUrl);
     return NextResponse.json({ ok: true });
   } catch (e) {
     if (e instanceof Response) return e;

@@ -128,6 +128,12 @@ export default function Recorder({
     recorderRef.current?.stop();
   }
 
+  // Notes longer than 5 minutes exceed what the AI accepts in one request.
+  useEffect(() => {
+    if (state === "recording" && elapsed >= 300) stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [elapsed, state]);
+
   const mm = String(Math.floor(elapsed / 60));
   const ss = String(elapsed % 60).padStart(2, "0");
 

@@ -24,6 +24,14 @@ export const babies = pgTable("babies", {
   userId: uuid("user_id").notNull().references(() => users.id),
   name: text("name").notNull(),
   birthdate: date("birthdate").notNull(),
+  // View-only share link token; null = sharing off. Rotating revokes old links.
+  shareToken: text("share_token"),
+});
+
+export const resetTokens = pgTable("reset_tokens", {
+  token: text("token").primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  expiresAt: timestamp("expires_at").notNull(),
 });
 
 export const entries = pgTable("entries", {

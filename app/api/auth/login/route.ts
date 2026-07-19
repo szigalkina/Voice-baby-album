@@ -4,8 +4,15 @@ import { getDb } from "@/lib/db";
 import { users } from "@/lib/schema";
 import { verifyPassword } from "@/lib/password";
 import { createSession } from "@/lib/auth";
+import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 export async function POST(req: Request) {
+  if (!rateLimit(`login:${clientIp(req)}`)) {
+    return NextResponse.json(
+      { error: "Too many attempts — wait a few minutes and try again" },
+      { status: 429 }
+    );
+  }
   const { email, password } = await req.json();
   if (!email || typeof password !== "string") {
     return NextResponse.json({ error: "Email and password required" }, { status: 400 });

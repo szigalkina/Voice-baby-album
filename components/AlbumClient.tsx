@@ -26,13 +26,52 @@ export default function AlbumClient({ baby }: { baby: Baby }) {
   const [showAll, setShowAll] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [editing, setEditing] = useState<Entry | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [shareBusy, setShareBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetch("/api/entries")
       .then((r) => r.json())
       .then((d) => setEntries(d.entries ?? []))
       .catch(() => setEntries([]));
+    fetch("/api/share")
+      .then((r) => r.json())
+      .then((d) => setShareUrl(d.url ?? null))
+      .catch(() => {});
   }, []);
+
+  async function createShare() {
+    setShareBusy(true);
+    try {
+      const res = await fetch("/api/share", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) setShareUrl(data.url);
+    } finally {
+      setShareBusy(false);
+    }
+  }
+
+  async function revokeShare() {
+    setShareBusy(true);
+    try {
+      const res = await fetch("/api/share", { method: "DELETE" });
+      if (res.ok) setShareUrl(null);
+    } finally {
+      setShareBusy(false);
+    }
+  }
+
+  async function copyShare() {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard unavailable — the url is visible to copy manually */
+    }
+  }
 
   async function toggleAlbum(entry: Entry, inAlbum: boolean) {
     setBusyId(entry.id);
@@ -164,6 +203,49 @@ export default function AlbumClient({ baby }: { baby: Baby }) {
                 print services that accept PDFs (Blurb, PrestoPhoto, Mixam…) take the
                 pages file and let you design the cover in their own editor
               </p>
+
+              <div className="mt-10 border-t border-hairline pt-8 mx-8">
+                {shareUrl ? (
+                  <div className="fade-up">
+                    <p className="label-caps text-ink mb-3">the book is shared</p>
+                    <p className="text-[12px] text-ink-soft break-all border border-hairline rounded-[2px] bg-paper px-3 py-2.5 select-all">
+                      {shareUrl}
+                    </p>
+                    <div className="mt-3 flex items-center justify-center gap-6">
+                      <button
+                        onClick={copyShare}
+                        className="label-caps text-ink underline underline-offset-4"
+                      >
+                        {copied ? "copied" : "copy link"}
+                      </button>
+                      <button
+                        onClick={revokeShare}
+                        disabled={shareBusy}
+                        className="label-caps text-umber underline underline-offset-4 disabled:opacity-40"
+                      >
+                        stop sharing
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-ink-soft mt-3 leading-relaxed">
+                      anyone with this link can view the book — nothing else, no
+                      account needed. stop sharing kills the link instantly.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <button
+                      onClick={createShare}
+                      disabled={shareBusy}
+                      className="label-caps text-ink underline underline-offset-4 disabled:opacity-40"
+                    >
+                      {shareBusy ? "one moment…" : "share the book"}
+                    </button>
+                    <p className="text-[11px] text-ink-soft mt-2.5 leading-relaxed">
+                      creates a private view-only link for grandparents and friends
+                    </p>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )

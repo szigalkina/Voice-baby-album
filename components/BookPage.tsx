@@ -107,7 +107,7 @@ export default function BookPage({
       )}
 
       {photos.length > 0 ? (
-        <div className={`flex-1 flex flex-col px-6 ${page.monthLabel ? "pt-3" : "pt-8"} pb-6`}>
+        <div className={`flex-1 flex flex-col px-6 ${page.monthLabel ? "pt-3" : "pt-8"} pb-16`}>
           <div className="text-center mb-4">
             <h3 className="font-display italic text-[24px] leading-tight">{entry.title}</h3>
             <p
@@ -128,12 +128,9 @@ export default function BookPage({
               <PhotoGrid photos={photos} />
             </div>
           </div>
-          <p className="label-caps !text-[9px] text-ink-soft text-center mt-3">
-            {capsDate(entry.recordedAt)}
-          </p>
         </div>
       ) : (
-        <div className={`flex-1 flex flex-col px-8 ${page.monthLabel ? "pt-3" : "pt-9"} pb-8`}>
+        <div className={`flex-1 flex flex-col px-8 ${page.monthLabel ? "pt-3" : "pt-9"} pb-16`}>
           <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
             <h3 className="font-display italic text-[28px] leading-tight">{entry.title}</h3>
             <p className="font-hand text-[20px] leading-relaxed text-ink/75 line-clamp-[9]">
@@ -141,12 +138,14 @@ export default function BookPage({
             </p>
             {entry.isMilestone && <Milestone />}
           </div>
-          {/* date: bottom middle, not glued to the edge — semi central */}
-          <p className="label-caps !text-[9px] text-ink-soft text-center mb-7">
-            {capsDate(entry.recordedAt)}
-          </p>
         </div>
       )}
+
+      {/* THE date rule: identical font and identical position on every page —
+          bottom middle, semi central, never in the content flow. */}
+      <p className="absolute bottom-9 inset-x-0 label-caps !text-[9px] text-ink-soft text-center pointer-events-none">
+        {capsDate(entry.recordedAt)}
+      </p>
 
       <span className={`absolute bottom-2.5 ${numberSide} text-[9px] text-ink-soft/60`}>
         {number}

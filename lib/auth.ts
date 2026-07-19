@@ -1,6 +1,10 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
+if (process.env.VERCEL && process.env.NODE_ENV === "production" && !process.env.AUTH_SECRET) {
+  throw new Error("AUTH_SECRET must be set in production");
+}
+
 const SECRET = new TextEncoder().encode(
   process.env.AUTH_SECRET ?? "dev-secret-not-for-production"
 );

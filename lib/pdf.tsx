@@ -23,7 +23,7 @@ const SOFT = "#6f675f";
 const PAPER = "#f7f4ee";
 
 const s = StyleSheet.create({
-  page: { backgroundColor: PAPER, padding: 48, flexDirection: "column" },
+  page: { backgroundColor: PAPER, paddingTop: 48, paddingHorizontal: 48, paddingBottom: 64, flexDirection: "column" },
   month: { fontFamily: "Helvetica", fontSize: 7, letterSpacing: 2.2, color: SOFT, textAlign: "center", marginBottom: 14 },
   title: { fontFamily: "Cormorant", fontStyle: "italic", fontSize: 26, color: INK, textAlign: "center" },
   message: { fontFamily: "Marck", fontSize: 15, color: SOFT, textAlign: "center", marginTop: 8, lineHeight: 1.45 },
@@ -35,6 +35,7 @@ const s = StyleSheet.create({
   print: { backgroundColor: "#ffffff", padding: 5, borderWidth: 0.5, borderColor: "#d9d3c9" },
   img: { objectFit: "cover" },
   pageNo: { position: "absolute", bottom: 16, fontFamily: "Helvetica", fontSize: 7, color: SOFT },
+  dateAbs: { position: "absolute", bottom: 34, left: 0, right: 0, fontFamily: "Helvetica", fontSize: 7, letterSpacing: 2, color: SOFT, textAlign: "center" },
 });
 
 function capsDate(iso: string) {
@@ -103,7 +104,6 @@ export function AlbumPdf({
                 <View style={{ flex: 1, justifyContent: "center" }}>
                   <PhotoBlock images={images} />
                 </View>
-                <Text style={s.date}>{capsDate(entry.recordedAt)}</Text>
               </>
             ) : (
               <>
@@ -112,11 +112,9 @@ export function AlbumPdf({
                   <Text style={s.messageBig}>{entry.summary}</Text>
                   {entry.isMilestone && <Text style={s.milestone}>— MILESTONE —</Text>}
                 </View>
-                <Text style={[s.date, { marginBottom: 28 }]}>
-                  {capsDate(entry.recordedAt)}
-                </Text>
               </>
             )}
+            <Text style={s.dateAbs}>{capsDate(entry.recordedAt)}</Text>
             <Text style={numberStyle}>{i + 1}</Text>
           </Page>
         );
