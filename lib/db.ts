@@ -51,12 +51,17 @@ async function bootstrap(db: any) {
   return db;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let dbPromise: Promise<any> | null = null;
+// The promise lives on globalThis: Next bundles this module separately per
+// route entry, and two module copies must never open two PGlite instances
+// against the same data directory (split-brain).
+const g = globalThis as typeof globalThis & {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  __vbaDbPromise?: Promise<any> | null;
+};
 
 export function getDb() {
-  if (!dbPromise) {
-    dbPromise = (async () => {
+  if (!g.__vbaDbPromise) {
+    g.__vbaDbPromise = (async () => {
       if (process.env.DATABASE_URL) {
         const { drizzle } = await import("drizzle-orm/neon-http");
         return bootstrap(drizzle(process.env.DATABASE_URL, { schema }));
@@ -70,9 +75,9 @@ export function getDb() {
       const client = new PGlite(dataDir);
       return bootstrap(drizzle(client, { schema }));
     })().catch((err) => {
-      dbPromise = null; // allow retry after a failed connect
+      g.__vbaDbPromise = null; // allow retry after a failed connect
       throw err;
     });
   }
-  return dbPromise;
+  return g.__vbaDbPromise;
 }
