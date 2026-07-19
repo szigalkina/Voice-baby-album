@@ -238,3 +238,15 @@ signed AAB in Android Studio, upload to Play Console, fill the Data Safety form
 | Google Play (only if Android needed, Phase 5.5) | $25 once, lifetime |
 
 So: web app ≈ **$0/month** at family scale. App stores are the only real cost.
+
+## DONE 2026-07-19 (post-launch): Private media storage
+
+Photos and audio now live in a PRIVATE Vercel Blob store (`vba-media`). The DB
+stores app-internal `/api/media/<encoded-blob-url>` URLs; `app/api/media/[blob]/route.ts`
+authenticates the session, verifies the file belongs to the user's baby, and
+streams it. `lib/storage.ts#readStoredFile` reads all three historical URL shapes
+(private blob, local disk, legacy public blob). The old public store
+`voice-baby-album-files` and orphan `voice-baby-album-private` store still exist:
+the public one serves one legacy test entry — fold their cleanup into ACTION 3.
+`.env.local` is intentionally trimmed to Gemini-only so local dev stays isolated
+(PGlite + disk); `npx vercel env pull .env.local` re-attaches prod services.
