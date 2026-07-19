@@ -1,20 +1,9 @@
 import { NextResponse } from "next/server";
-import { promises as fs } from "fs";
-import path from "path";
 import { and, eq } from "drizzle-orm";
 import { entries } from "@/lib/schema";
 import { requireBaby } from "@/lib/guard";
 import { analyzeVoiceNote } from "@/lib/ai";
-
-async function loadAudio(url: string): Promise<Buffer> {
-  if (url.startsWith("/api/files/")) {
-    const rel = url.replace("/api/files/", "");
-    return fs.readFile(path.join(process.cwd(), ".data", "uploads", ...rel.split("/")));
-  }
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Could not load audio: ${res.status}`);
-  return Buffer.from(await res.arrayBuffer());
-}
+import { readStoredFile } from "@/lib/storage";
 
 export async function POST(
   _req: Request,
@@ -28,8 +17,10 @@ export async function POST(
       .from(entries)
       .where(and(eq(entries.id, id), eq(entries.babyId, baby.id)));
     if (!entry) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    const buf = await loadAudio(entry.audioUrl);
-    const mime = entry.audioUrl.endsWith(".m4a") ? "audio/mp4" : "audio/webm";
+    const file = await readStoredFile(entry.audioUrl);
+    if (!file) return NextResponse.json({ error: "Audio unavailable" }, { status: 502 });
+    const buf = file.data;
+    const mime = file.contentType;
     try {
       const a = await analyzeVoiceNote(buf, mime);
       const [ready] = await db
