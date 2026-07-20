@@ -1,10 +1,11 @@
-# Voice Baby Album
+# Voice Memory Album
 
-Your baby's first year, told in your own voice.
+The moments you love, told in your own voice.
 
 **Live:** https://voice-baby-album.vercel.app
 
-A mobile-first web app: tap one button, talk about your baby's day in any language,
+A mobile-first web app: tap one button, talk about your baby's day — or any moment
+worth keeping — in any language,
 and AI turns the voice note into a page of a quietly luxurious photo book — title,
 message in a handwritten script, milestone detection, and a place for photos. The
 album grows from the very first entry and exports as a print-ready PDF.

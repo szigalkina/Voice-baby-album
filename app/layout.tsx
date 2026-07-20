@@ -21,9 +21,9 @@ const marck = Marck_Script({
 });
 
 export const metadata: Metadata = {
-  title: "Voice Baby Album",
-  description: "Your baby's first year, told in your own voice.",
-  appleWebApp: { capable: true, statusBarStyle: "default", title: "Baby Album" },
+  title: "Voice Memory Album",
+  description: "The moments you love, told in your own voice.",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Memory Album" },
   icons: { apple: "/icon-192.png" },
 };
 

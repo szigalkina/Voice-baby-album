@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Voice Baby Album",
-    short_name: "BabyAlbum",
-    description: "Your baby's first year, told in your own voice.",
+    name: "Voice Memory Album",
+    short_name: "MemoryAlbum",
+    description: "The moments you love, told in your own voice.",
     start_url: "/",
     display: "standalone",
     background_color: "#f2efe9",

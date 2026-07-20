@@ -56,10 +56,10 @@ export default function SignInPage() {
         <div className="text-center mb-10">
           <WaveMark className="mb-6" />
           <h1 className="font-display text-[38px] font-medium leading-tight tracking-tight">
-            Voice Baby Album
+            Voice Memory Album
           </h1>
           <p className="mt-2 font-display italic text-[19px] text-ink-soft">
-            your baby&rsquo;s first year, told in your own voice
+            the moments you love, told in your own voice
           </p>
         </div>
 

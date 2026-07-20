@@ -78,7 +78,7 @@ export function AlbumPdf({
   const withCover = part !== "interior";
   const withPages = part !== "cover";
   return (
-    <Document title={`${babyName} — Voice Baby Album`}>
+    <Document title={`${babyName} — Voice Memory Album`}>
       {withCover && (
         <Page size={[PAGE, PAGE]} style={[s.page, { justifyContent: "center" }]} wrap={false}>
           <Text style={[s.titleBig, { fontSize: albumTitle ? 38 : 44 }]}>

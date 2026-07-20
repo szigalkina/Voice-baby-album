@@ -1,4 +1,4 @@
-export const metadata = { title: "Privacy — Voice Baby Album" };
+export const metadata = { title: "Privacy — Voice Memory Album" };
 
 export default function PrivacyPage() {
   return (
@@ -8,15 +8,15 @@ export default function PrivacyPage() {
 
       <section className="space-y-4">
         <p>
-          Voice Baby Album is a small, family-focused app for keeping voice memories of
-          your baby&rsquo;s first year. Your memories belong to you. This page explains
+          Voice Memory Album is a small, family-focused app for keeping voice memories of
+          the people and moments you love. Your memories belong to you. This page explains
           plainly what we store and why.
         </p>
 
         <h2 className="font-display text-xl font-semibold pt-2">What we store</h2>
         <ul className="list-disc pl-5 space-y-1.5">
           <li>Your email address and a securely hashed password (never the password itself).</li>
-          <li>Your baby&rsquo;s first name and birth date — used only to organize the album.</li>
+          <li>The album names and start dates you enter (often a child&rsquo;s name and birth date) — used only to organize the albums.</li>
           <li>
             The content you create: voice recordings, their transcripts, the AI-written
             titles and summaries, and the photos you upload.

@@ -54,7 +54,7 @@ export default function SharedBook({
 
       <footer className="mt-12 text-center">
         <WaveMark className="mb-3 opacity-60" />
-        <p className="label-caps !text-[9px] text-ink-soft/70">voice baby album</p>
+        <p className="label-caps !text-[9px] text-ink-soft/70">voice memory album</p>
       </footer>
     </main>
   );

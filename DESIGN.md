@@ -1,4 +1,4 @@
-# DESIGN.md — Voice Baby Album
+# DESIGN.md — Voice Memory Album
 
 ## Status
 Current implementation = "warm playful" system (milk/apricot/sage, Fraunces/Outfit/

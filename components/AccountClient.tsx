@@ -72,7 +72,7 @@ export default function AccountClient() {
       const data = await res.json().catch(() => ({}));
       if (data.error === "email_not_configured") {
         // Fall back to the user's own mail app with the message prefilled.
-        const subject = encodeURIComponent("Voice Baby Album — support");
+        const subject = encodeURIComponent("Voice Memory Album — support");
         const body = encodeURIComponent(message);
         window.location.href = `mailto:${OWNER_EMAIL}?subject=${subject}&body=${body}`;
         setSupportState("idle");

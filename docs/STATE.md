@@ -131,3 +131,12 @@ ever wants it clean.
   fine for support (goes to owner) and her own password reset; a reset email
   to a partner's separate account will not deliver. Fix later = buy/verify a
   domain in Resend and set RESEND_FROM.
+
+## 2026-07-20 (later still) — Renamed to "Voice Memory Album"
+
+Brand renamed from Voice Baby Album across all app surfaces (UI, manifest, PDFs,
+emails, privacy, README/PRODUCT/DESIGN, package.json). URLs deliberately KEPT:
+voice-baby-album.vercel.app and github.com/szigalkina/Voice-baby-album still
+work (renaming would break live share links, home-screen icons, and the git
+remote). voice-memory-album.vercel.app added as an alias if available. Historical
+docs under docs/superpowers keep the old name on purpose.

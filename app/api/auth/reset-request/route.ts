@@ -41,10 +41,10 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: process.env.RESEND_FROM ?? "Voice Baby Album <onboarding@resend.dev>",
+        from: process.env.RESEND_FROM ?? "Voice Memory Album <onboarding@resend.dev>",
         to: user.email,
         subject: "Reset your password",
-        html: `<p>Tap to choose a new password for Voice Baby Album:</p><p><a href="${link}">Reset password</a></p><p>This link expires in 30 minutes. If you didn't ask for this, ignore it.</p>`,
+        html: `<p>Tap to choose a new password for Voice Memory Album:</p><p><a href="${link}">Reset password</a></p><p>This link expires in 30 minutes. If you didn't ask for this, ignore it.</p>`,
       }),
     });
     return NextResponse.json({ ok: true });

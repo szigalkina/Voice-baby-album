@@ -1,4 +1,4 @@
-# Voice Baby Album
+# Voice Memory Album
 
 ## Register
 Hybrid. The journal (recording, editing, settings) is **product**: it must disappear
