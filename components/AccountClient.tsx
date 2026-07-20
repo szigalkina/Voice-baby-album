@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { monthNumber } from "@/lib/months";
+
 import WaveMark from "./WaveMark";
 
 interface Album {
@@ -15,11 +15,11 @@ interface Album {
 
 const OWNER_EMAIL = "szigalkina@gmail.com";
 
-function ageLabel(birthdate: string): string {
-  const months = monthNumber(birthdate, new Date()) - 1;
-  if (months < 1) return "brand new";
-  if (months === 1) return "one month old";
-  return `${months} months old`;
+function beganLabel(startDate: string): string {
+  return `began ${new Date(startDate + "T00:00:00Z").toLocaleDateString("en-GB", {
+    month: "long",
+    year: "numeric",
+  })}`;
 }
 
 export default function AccountClient() {
@@ -132,7 +132,7 @@ export default function AccountClient() {
                   )}
                 </div>
                 <p className="label-caps !text-[9px] text-ink-soft mt-1">
-                  {ageLabel(a.birthdate)} · {a.entryCount}{" "}
+                  {beganLabel(a.birthdate)} · {a.entryCount}{" "}
                   {a.entryCount === 1 ? "memory" : "memories"}
                 </p>
               </button>

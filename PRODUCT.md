@@ -9,6 +9,14 @@ is **brand**: the design is part of the keepsake itself.
 Two parents sharing one private album of their baby's first year. Mobile-only in
 practice. Often one-handed, often at night, often mid-feed.
 
+## Scope update (2026-07-20)
+Albums are GENERIC: a first year, a second year, a holiday, any story. An album =
+name + start date (chapters count months from it) + optional custom cover title.
+The baby's first year remains the flagship use case and sets the emotional tone,
+but no copy, layout, or AI behavior may assume "baby" or "first year" anymore.
+(DB note: the table is still named `babies` and the column `birthdate` — they now
+mean album subject/start date; renaming wasn't worth a migration.)
+
 ## Purpose
 Talking is the whole interface: a parent records a voice note, AI turns it into a
 book page (title, message, quote, milestone), photos attach to the moment. The

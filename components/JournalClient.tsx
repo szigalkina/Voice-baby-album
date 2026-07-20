@@ -2,18 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Baby, Entry } from "@/lib/types";
-import { monthNumber } from "@/lib/months";
+import { currentMonthLabel } from "@/lib/months";
 import Recorder from "./Recorder";
 import EntryCard from "./EntryCard";
 import EditEntrySheet from "./EditEntrySheet";
 import WaveMark from "./WaveMark";
-
-function ageLabel(birthdate: string): string {
-  const months = monthNumber(birthdate, new Date()) - 1;
-  if (months < 1) return "brand new";
-  if (months === 1) return "one month old";
-  return `${months} months old`;
-}
 
 export default function JournalClient({ baby }: { baby: Baby }) {
   const [entries, setEntries] = useState<Entry[] | null>(null);
@@ -67,7 +60,7 @@ export default function JournalClient({ baby }: { baby: Baby }) {
           <h1 className="font-display italic text-[34px] leading-tight -mt-0.5">
             {baby.name}
           </h1>
-          <p className="label-caps text-ink-soft mt-1">{ageLabel(baby.birthdate)}</p>
+          <p className="label-caps text-ink-soft mt-1">{currentMonthLabel(baby.birthdate)}</p>
         </div>
       </header>
 

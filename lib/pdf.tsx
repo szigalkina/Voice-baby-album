@@ -81,14 +81,9 @@ export function AlbumPdf({
     <Document title={`${babyName} — Voice Baby Album`}>
       {withCover && (
         <Page size={[PAGE, PAGE]} style={[s.page, { justifyContent: "center" }]} wrap={false}>
-          {albumTitle ? (
-            <Text style={[s.titleBig, { fontSize: 38 }]}>{albumTitle}</Text>
-          ) : (
-            <>
-              <Text style={[s.month, { marginBottom: 18 }]}>THE FIRST YEAR OF</Text>
-              <Text style={[s.titleBig, { fontSize: 44 }]}>{babyName}</Text>
-            </>
-          )}
+          <Text style={[s.titleBig, { fontSize: albumTitle ? 38 : 44 }]}>
+            {albumTitle ?? babyName}
+          </Text>
         </Page>
       )}
       {withPages &&

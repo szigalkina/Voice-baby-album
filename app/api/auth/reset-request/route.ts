@@ -41,7 +41,7 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Voice Baby Album <login@voicebabyalbum.app>",
+        from: process.env.RESEND_FROM ?? "Voice Baby Album <onboarding@resend.dev>",
         to: user.email,
         subject: "Reset your password",
         html: `<p>Tap to choose a new password for Voice Baby Album:</p><p><a href="${link}">Reset password</a></p><p>This link expires in 30 minutes. If you didn't ask for this, ignore it.</p>`,

@@ -20,3 +20,9 @@ export function monthLabel(birthdate: string, monthNum: number): string {
   const calendarMonth = (bm - 1 + (monthNum - 1)) % 12;
   return `Month ${monthNum} — ${MONTH_NAMES[calendarMonth]}`;
 }
+
+// "month 5" — the album's current chapter, counted from its start date.
+// For a baby-year album this equals the baby's age in months.
+export function currentMonthLabel(startDate: string): string {
+  return `month ${monthNumber(startDate, new Date())}`;
+}

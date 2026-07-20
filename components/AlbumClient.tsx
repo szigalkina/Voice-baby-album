@@ -3,18 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import type { Baby, Entry } from "@/lib/types";
-import { monthLabel, monthNumber } from "@/lib/months";
+import { currentMonthLabel, monthLabel, monthNumber } from "@/lib/months";
 import { buildBookPages } from "@/lib/book";
 import BookPage from "./BookPage";
 import EditEntrySheet from "./EditEntrySheet";
 import WaveMark from "./WaveMark";
-
-function ageLabel(birthdate: string): string {
-  const months = monthNumber(birthdate, new Date()) - 1;
-  if (months < 1) return "brand new";
-  if (months === 1) return "one month old";
-  return `${months} months old`;
-}
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long" });
@@ -168,7 +161,7 @@ export default function AlbumClient({ baby }: { baby: Baby }) {
               if (e.key === "Enter") saveTitle();
               if (e.key === "Escape") setEditingTitle(false);
             }}
-            placeholder={`the first year of ${baby.name}`}
+            placeholder={baby.name}
             className="w-full bg-transparent text-center font-display italic text-[30px] leading-tight outline-none border-b border-ink pb-1"
           />
         ) : (
@@ -180,19 +173,12 @@ export default function AlbumClient({ baby }: { baby: Baby }) {
             title="Tap to rename the album"
             className="block w-full"
           >
-            {title ? (
-              <h1 className="font-display italic text-[34px] leading-tight">{title}</h1>
-            ) : (
-              <>
-                <p className="label-caps text-ink-soft">the first year of</p>
-                <h1 className="font-display italic text-[40px] leading-tight">
-                  {baby.name}
-                </h1>
-              </>
-            )}
+            <h1 className="font-display italic text-[36px] leading-tight">
+              {title ?? baby.name}
+            </h1>
           </button>
         )}
-        <p className="label-caps text-ink-soft mt-1">{ageLabel(baby.birthdate)}</p>
+        <p className="label-caps text-ink-soft mt-1">{currentMonthLabel(baby.birthdate)}</p>
         <div className="mt-6 flex items-center justify-center gap-8">
           {tab("book", "book")}
           {tab("list", "all entries")}

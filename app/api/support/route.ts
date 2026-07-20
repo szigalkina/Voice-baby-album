@@ -33,7 +33,7 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Voice Baby Album <support@voicebabyalbum.app>",
+        from: process.env.RESEND_FROM ?? "Voice Baby Album <onboarding@resend.dev>",
         to: OWNER_EMAIL,
         reply_to: me?.email,
         subject: `Support message from ${me?.email ?? "a user"}`,

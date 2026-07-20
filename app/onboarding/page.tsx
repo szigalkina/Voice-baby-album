@@ -39,15 +39,21 @@ export default function OnboardingPage() {
         <div className="text-center mb-9">
           <WaveMark className="mb-6" />
           <h1 className="font-display italic text-[32px] leading-tight">
-            who are we celebrating?
+            a new album
           </h1>
           <p className="mt-2 text-sm text-ink-soft">
-            the birth date organizes the album by month of life
+            a first year, a second year, a summer — any story you want to keep
           </p>
         </div>
-        <label className="label-caps text-ink-soft block mb-1.5">baby&rsquo;s name</label>
-        <input required value={name} onChange={(e) => setName(e.target.value)} placeholder="Mila" className={field} />
-        <label className="label-caps text-ink-soft block mb-1.5 mt-5">birth date</label>
+        <label className="label-caps text-ink-soft block mb-1.5">album name</label>
+        <input
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Mila — or Sardinia, summer 2027"
+          className={field}
+        />
+        <label className="label-caps text-ink-soft block mb-1.5 mt-5">when does it begin?</label>
         <input
           required
           type="date"
@@ -55,6 +61,9 @@ export default function OnboardingPage() {
           onChange={(e) => setBirthdate(e.target.value)}
           className={field}
         />
+        <p className="mt-1.5 text-[11px] text-ink-soft leading-relaxed">
+          chapters count months from this date — for a baby&rsquo;s year, use the birth date
+        </p>
         <button
           type="submit"
           disabled={state === "saving"}

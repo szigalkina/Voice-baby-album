@@ -115,3 +115,19 @@ owner's real account is separate). Local dev seeds: test@example.com /
 newpassword99 (password was rotated during reset-flow test), babies Mila+Theo.
 Owner's Gemini key is in Vercel env + chat history — offer rotation if she
 ever wants it clean.
+
+## 2026-07-20 (later) — Generic albums + Resend prep
+
+- Albums generalized beyond "first year": onboarding = "a new album" (name +
+  "when does it begin?"); headers/covers default to the album NAME (the
+  "the first year of" eyebrow is gone — type it as a custom title if wanted);
+  age label replaced by "month N" (album month); account cards say
+  "began <month year>". AI prompt covers any moment, not only babies.
+  DB unchanged: `babies.name` = album name, `babies.birthdate` = start date.
+- Resend sender fixed: `RESEND_FROM` env (default `onboarding@resend.dev` —
+  the old hardcoded voicebabyalbum.app sender would have been rejected; we
+  don't own that domain). LIMITATION until a custom domain is verified in
+  Resend: emails deliver ONLY to the Resend account owner's own address —
+  fine for support (goes to owner) and her own password reset; a reset email
+  to a partner's separate account will not deliver. Fix later = buy/verify a
+  domain in Resend and set RESEND_FROM.

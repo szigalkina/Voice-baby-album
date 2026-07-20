@@ -2,17 +2,10 @@
 
 import { useMemo } from "react";
 import type { Baby, Entry } from "@/lib/types";
-import { monthNumber } from "@/lib/months";
+import { currentMonthLabel } from "@/lib/months";
 import { buildBookPages } from "@/lib/book";
 import BookPage from "./BookPage";
 import WaveMark from "./WaveMark";
-
-function ageLabel(birthdate: string): string {
-  const months = monthNumber(birthdate, new Date()) - 1;
-  if (months < 1) return "brand new";
-  if (months === 1) return "one month old";
-  return `${months} months old`;
-}
 
 // The read-only book grandparents see. No account, no editing, no controls.
 export default function SharedBook({
@@ -30,15 +23,10 @@ export default function SharedBook({
   return (
     <main className="relative z-10 mx-auto w-full max-w-md flex-1 pb-16">
       <header className="pt-10 pb-6 text-center px-5">
-        {baby.title ? (
-          <h1 className="font-display italic text-[34px] leading-tight">{baby.title}</h1>
-        ) : (
-          <>
-            <p className="label-caps text-ink-soft">the first year of</p>
-            <h1 className="font-display italic text-[40px] leading-tight">{baby.name}</h1>
-          </>
-        )}
-        <p className="label-caps text-ink-soft mt-1">{ageLabel(baby.birthdate)}</p>
+        <h1 className="font-display italic text-[36px] leading-tight">
+          {baby.title ?? baby.name}
+        </h1>
+        <p className="label-caps text-ink-soft mt-1">{currentMonthLabel(baby.birthdate)}</p>
       </header>
 
       {pages.length === 0 ? (
