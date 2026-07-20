@@ -28,6 +28,7 @@ export const babies = pgTable("babies", {
   shareToken: text("share_token"),
   // Custom album title shown on the cover; null = "the first year of <name>".
   title: text("title"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const resetTokens = pgTable("reset_tokens", {

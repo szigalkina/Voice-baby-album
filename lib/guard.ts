@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { getUserId } from "./auth";
 import { getDb } from "./db";
@@ -16,7 +16,11 @@ export async function requireUser() {
 // All albums this user can see: their own plus any they were invited into.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getBabiesForUser(db: any, userId: string) {
-  const own = await db.select().from(babies).where(eq(babies.userId, userId));
+  const own = await db
+    .select()
+    .from(babies)
+    .where(eq(babies.userId, userId))
+    .orderBy(asc(babies.createdAt), asc(babies.id));
   const member = await db
     .select({ baby: babies })
     .from(babyMembers)

@@ -170,3 +170,11 @@ Owner flipped the domain in the dashboard (chose Redirect). Now:
 - Old voice-baby-album.vercel.app → 307 redirect to new, forever. Nothing broke.
 - GitHub: github.com/szigalkina/Voice-memory-album. Vercel project: voice-memory-album.
 Rename is done everywhere. Only docs/superpowers historical files keep the old name.
+
+## 2026-07-20 (final+1) — Back-dating + stable album order
+
+- Entry dates are editable: "date" field in the edit sheet (keeps original
+  time-of-day; only the calendar date changes); PATCH /api/entries/[id] accepts
+  `recordedAt` (ISO, validated). Journal re-sorts; book chapters recompute.
+- babies.created_at added; getBabiesForUser orders by (created_at, id) — the
+  "nondeterministic default active album" gap is closed.

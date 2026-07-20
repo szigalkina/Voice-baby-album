@@ -18,6 +18,7 @@ export default function EditEntrySheet({
 }) {
   const [title, setTitle] = useState(entry.title ?? "");
   const [summary, setSummary] = useState(entry.summary ?? "");
+  const [date, setDate] = useState(entry.recordedAt.slice(0, 10));
   const [photos, setPhotos] = useState(entry.photos);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +44,12 @@ export default function EditEntrySheet({
       const res = await fetch(`/api/entries/${entry.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, summary }),
+        body: JSON.stringify({
+          title,
+          summary,
+          // keep the original time of day; only the calendar date changes
+          recordedAt: `${date}${entry.recordedAt.slice(10)}`,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Couldn't save");
@@ -73,6 +79,14 @@ export default function EditEntrySheet({
 
         <label className="label-caps text-ink-soft block mb-1.5">title</label>
         <input value={title} onChange={(e) => setTitle(e.target.value)} className={field} />
+
+        <label className="label-caps text-ink-soft block mb-1.5 mt-5">date</label>
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className={field}
+        />
 
         <label className="label-caps text-ink-soft block mb-1.5 mt-5">message</label>
         <textarea

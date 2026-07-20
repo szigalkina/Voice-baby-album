@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS invites (
 );
 ALTER TABLE babies ADD COLUMN IF NOT EXISTS share_token text;
 ALTER TABLE babies ADD COLUMN IF NOT EXISTS title text;
+ALTER TABLE babies ADD COLUMN IF NOT EXISTS created_at timestamp NOT NULL DEFAULT now();
 `;
 
 // Both drivers get the DDL one statement at a time — Neon's HTTP driver

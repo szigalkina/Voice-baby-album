@@ -18,6 +18,13 @@ export async function PATCH(
       patch.summary = body.summary.trim();
     }
     if (typeof body.inAlbum === "boolean") patch.inAlbum = body.inAlbum;
+    if (typeof body.recordedAt === "string") {
+      const d = new Date(body.recordedAt);
+      if (isNaN(d.getTime())) {
+        return NextResponse.json({ error: "Invalid date" }, { status: 400 });
+      }
+      patch.recordedAt = d;
+    }
     if (!Object.keys(patch).length) {
       return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
     }

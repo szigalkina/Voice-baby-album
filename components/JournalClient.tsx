@@ -45,7 +45,12 @@ export default function JournalClient({ baby }: { baby: Baby }) {
   }, []);
 
   const update = useCallback((updated: Entry) => {
-    setEntries((prev) => prev?.map((e) => (e.id === updated.id ? updated : e)) ?? null);
+    setEntries(
+      (prev) =>
+        prev
+          ?.map((e) => (e.id === updated.id ? updated : e))
+          .sort((a, b) => b.recordedAt.localeCompare(a.recordedAt)) ?? null
+    );
   }, []);
 
   const remove = useCallback((id: string) => {
