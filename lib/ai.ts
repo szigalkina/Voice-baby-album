@@ -68,22 +68,47 @@ const SCHEMA = {
   required: ["transcript", "title", "summary", "is_milestone"],
 };
 
-export async function analyzeVoiceNote(
+// Models are tried in order until one answers. Rolling aliases have silently
+// changed behavior before (gemini-flash-latest became a thinking model that
+// hangs on audio+schema requests) — hence pinned primary + fallbacks + a hard
+// per-attempt timeout so one bad model can never stall the whole request.
+const MODEL_CHAIN = [
+  process.env.GEMINI_MODEL,
+  "gemini-3-flash-preview",
+  "gemini-flash-lite-latest",
+  "gemini-flash-latest",
+].filter((m, i, a): m is string => !!m && a.indexOf(m) === i);
+
+const ATTEMPT_TIMEOUT_MS = 75_000;
+
+// Thinking models can emit multiple parts (thoughts first) — find the JSON one.
+function extractJsonText(body: unknown): string | null {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const parts = (body as any)?.candidates?.[0]?.content?.parts ?? [];
+  for (const p of parts) {
+    if (typeof p?.text !== "string" || p.thought) continue;
+    const text = p.text.replace(/^```json\s*|```\s*$/g, "").trim();
+    try {
+      JSON.parse(text);
+      return text;
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+async function callModel(
+  model: string,
   audio: Buffer,
   mimeType: string
 ): Promise<EntryAnalysis> {
-  if (!process.env.GEMINI_API_KEY) {
-    // Dev mode: no key configured — deterministic mock with simulated latency.
-    if (process.env.AI_FORCE_FAIL) throw new Error("forced AI failure (dev)");
-    await new Promise((r) => setTimeout(r, 800));
-    return mockAnalysis();
-  }
-  const model = process.env.GEMINI_MODEL ?? "gemini-flash-latest";
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.GEMINI_API_KEY}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS),
       body: JSON.stringify({
         contents: [
           {
@@ -100,9 +125,35 @@ export async function analyzeVoiceNote(
       }),
     }
   );
-  if (!res.ok) throw new Error(`Gemini error ${res.status}: ${await res.text()}`);
-  const body = await res.json();
-  const text = body?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Gemini returned no content");
+  if (!res.ok) throw new Error(`Gemini ${model} error ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  const text = extractJsonText(await res.json());
+  if (!text) throw new Error(`Gemini ${model} returned no parseable JSON`);
   return parseAnalysis(JSON.parse(text));
+}
+
+export async function analyzeVoiceNote(
+  audio: Buffer,
+  mimeType: string
+): Promise<EntryAnalysis> {
+  if (!process.env.GEMINI_API_KEY) {
+    // Dev mode: no key configured — deterministic mock with simulated latency.
+    if (process.env.AI_FORCE_FAIL) throw new Error("forced AI failure (dev)");
+    await new Promise((r) => setTimeout(r, 800));
+    return mockAnalysis();
+  }
+  let lastError: unknown;
+  for (const model of MODEL_CHAIN) {
+    try {
+      return await callModel(model, audio, mimeType);
+    } catch (err) {
+      lastError = err;
+      console.error(`AI model ${model} failed:`, err);
+    }
+  }
+  const { sendOpsAlert } = await import("./alert");
+  await sendOpsAlert(
+    "voice note processing is failing",
+    `All models in the chain failed (${MODEL_CHAIN.join(" → ")}).\nLast error: ${String(lastError).slice(0, 500)}\n\nUsers see "Couldn't process this note" and can retry once this is fixed.`
+  );
+  throw lastError;
 }
