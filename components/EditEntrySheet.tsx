@@ -73,7 +73,9 @@ export default function EditEntrySheet({
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center">
       <button aria-label="Close" onClick={onClose} className="absolute inset-0 bg-ink/50" />
-      <div className="relative w-full max-w-md rounded-t-[6px] bg-bone border-t border-hairline p-6 pb-9 max-h-[88vh] overflow-y-auto fade-up">
+      {/* dvh (not vh): on phones the URL bar eats part of 100vh and the sheet's
+          bottom actions end up unreachable behind it */}
+      <div className="relative w-full max-w-md rounded-t-[6px] bg-bone border-t border-hairline p-6 pb-[calc(2.25rem+env(safe-area-inset-bottom))] max-h-[85dvh] overflow-y-auto overscroll-contain fade-up">
         <div className="mx-auto mb-5 h-px w-10 bg-ink/25" />
         <h2 className="font-display italic text-[24px] mb-5">edit this page</h2>
 

@@ -30,6 +30,11 @@ export default function AccountClient() {
   const [message, setMessage] = useState("");
   const [supportState, setSupportState] = useState<"idle" | "busy" | "sent">("idle");
   const [supportError, setSupportError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editBusy, setEditBusy] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/albums")
@@ -51,6 +56,65 @@ export default function AccountClient() {
     if (res.ok) {
       router.push("/");
       router.refresh();
+    }
+  }
+
+  function startEdit(a: Album) {
+    setEditingId(a.id);
+    setEditName(a.name);
+    setEditDate(a.birthdate);
+    setEditError(null);
+  }
+
+  async function saveAlbum(id: string) {
+    setEditBusy(true);
+    setEditError(null);
+    try {
+      const res = await fetch(`/api/albums/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName, birthdate: editDate }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data?.album) throw new Error(data?.error ?? "Couldn't save");
+      setAlbums(
+        (prev) =>
+          prev?.map((a) =>
+            a.id === id
+              ? { ...a, name: data.album.name, birthdate: data.album.birthdate }
+              : a
+          ) ?? null
+      );
+      setEditingId(null);
+      router.refresh();
+    } catch (e) {
+      setEditError(e instanceof Error ? e.message : "Couldn't save");
+    } finally {
+      setEditBusy(false);
+    }
+  }
+
+  async function deleteAlbum(a: Album) {
+    const what =
+      a.entryCount === 0
+        ? "This album is empty."
+        : `Its ${a.entryCount} ${a.entryCount === 1 ? "memory" : "memories"} — recordings and photos — will be gone too.`;
+    if (!confirm(`Delete the album “${a.name}”? ${what} This cannot be undone.`)) return;
+    setEditBusy(true);
+    try {
+      const res = await fetch(`/api/albums/${a.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error ?? "Couldn't delete");
+      }
+      setAlbums((prev) => prev?.filter((x) => x.id !== a.id) ?? null);
+      if (activeId === a.id) setActiveId(null);
+      setEditingId(null);
+      router.refresh();
+    } catch (e) {
+      setEditError(e instanceof Error ? e.message : "Couldn't delete");
+    } finally {
+      setEditBusy(false);
     }
   }
 
@@ -115,28 +179,90 @@ export default function AccountClient() {
           </div>
         ) : (
           <div className="space-y-3">
-            {albums.map((a) => (
-              <button
-                key={a.id}
-                onClick={() => openAlbum(a.id)}
-                className={`w-full text-left border rounded-[3px] bg-paper px-5 py-4 transition active:scale-[0.99] ${
-                  a.id === activeId ? "border-ink" : "border-hairline"
-                }`}
-              >
-                <div className="flex items-baseline justify-between gap-3">
-                  <span className="font-display italic text-[24px] leading-tight">
-                    {a.name}
-                  </span>
-                  {a.id === activeId && (
-                    <span className="label-caps !text-[9px] text-ink-soft">open now</span>
-                  )}
+            {albums.map((a) =>
+              editingId === a.id ? (
+                <div
+                  key={a.id}
+                  className="border border-ink rounded-[3px] bg-paper px-5 py-4 fade-up"
+                >
+                  <label className="label-caps text-ink-soft block mb-1.5">name</label>
+                  <input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full rounded-[2px] border border-hairline bg-paper px-4 py-3 outline-none focus:border-ink transition-colors"
+                  />
+                  <label className="label-caps text-ink-soft block mb-1.5 mt-4">
+                    when it begins
+                  </label>
+                  <input
+                    type="date"
+                    value={editDate}
+                    onChange={(e) => setEditDate(e.target.value)}
+                    className="w-full rounded-[2px] border border-hairline bg-paper px-4 py-3 outline-none focus:border-ink transition-colors"
+                  />
+                  {editError && <p className="mt-3 text-sm text-umber">{editError}</p>}
+                  <div className="mt-5 flex items-center justify-between">
+                    <button
+                      onClick={() => deleteAlbum(a)}
+                      disabled={editBusy}
+                      className="label-caps text-umber underline underline-offset-4 disabled:opacity-40"
+                    >
+                      delete album
+                    </button>
+                    <div className="flex gap-4 items-center">
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="label-caps text-ink-soft"
+                      >
+                        cancel
+                      </button>
+                      <button
+                        onClick={() => saveAlbum(a.id)}
+                        disabled={editBusy || !editName.trim()}
+                        className="bg-ink text-bone label-caps px-5 py-3 rounded-[2px] active:scale-[0.98] transition disabled:opacity-40"
+                      >
+                        {editBusy ? "saving…" : "save"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-                <p className="label-caps !text-[9px] text-ink-soft mt-1">
-                  {beganLabel(a.birthdate)} · {a.entryCount}{" "}
-                  {a.entryCount === 1 ? "memory" : "memories"}
-                </p>
-              </button>
-            ))}
+              ) : (
+                <div
+                  key={a.id}
+                  className={`border rounded-[3px] bg-paper px-5 py-4 transition ${
+                    a.id === activeId ? "border-ink" : "border-hairline"
+                  }`}
+                >
+                  <button
+                    onClick={() => openAlbum(a.id)}
+                    className="w-full text-left active:scale-[0.99] transition"
+                  >
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="font-display italic text-[24px] leading-tight">
+                        {a.name}
+                      </span>
+                      {a.id === activeId && (
+                        <span className="label-caps !text-[9px] text-ink-soft">
+                          open now
+                        </span>
+                      )}
+                    </div>
+                    <p className="label-caps !text-[9px] text-ink-soft mt-1">
+                      {beganLabel(a.birthdate)} · {a.entryCount}{" "}
+                      {a.entryCount === 1 ? "memory" : "memories"}
+                    </p>
+                  </button>
+                  <div className="mt-2.5 border-t border-hairline pt-2.5 text-right">
+                    <button
+                      onClick={() => startEdit(a)}
+                      className="label-caps !text-[9px] text-ink-soft underline underline-offset-4"
+                    >
+                      edit
+                    </button>
+                  </div>
+                </div>
+              )
+            )}
           </div>
         )}
       </section>
