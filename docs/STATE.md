@@ -138,5 +138,9 @@ Brand renamed from Voice Baby Album across all app surfaces (UI, manifest, PDFs,
 emails, privacy, README/PRODUCT/DESIGN, package.json). URLs deliberately KEPT:
 voice-baby-album.vercel.app and github.com/szigalkina/Voice-baby-album still
 work (renaming would break live share links, home-screen icons, and the git
-remote). voice-memory-album.vercel.app added as an alias if available. Historical
-docs under docs/superpowers keep the old name on purpose.
+remote). CLI aliases for voice-memory-album.vercel.app hit Vercel Deployment
+Protection SSO (only the production domain is public) — alias removed. To add
+the new-name URL properly: Vercel dashboard → voice-baby-album → Settings →
+Domains → add `voice-memory-album.vercel.app` (project domains are public and
+auto-update). Real long-term answer: a custom domain. Historical docs under
+docs/superpowers keep the old name on purpose.
