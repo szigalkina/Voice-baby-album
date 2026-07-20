@@ -279,3 +279,34 @@ PDF-accepting printers (Blurb PDF-to-Book, PrestoPhoto, Mixam) take the interior
 file and provide their own cover editors (covers are wraparound + spine, a
 different artifact). Albelli-style consumer editors don't accept PDFs at all.
 No direct printing-service API integration — deliberate (none worth coupling to).
+
+## DONE 2026-07-19/20: Gap sweep (dates, sharing, hardening)
+
+- Date rule: every book page and PDF page renders the date in one place (absolute
+  bottom-center, micro-caps) — never in the content flow. Month captions stay top.
+- View-only share links SHIPPED (owner picked option 1): `share_token` on babies,
+  /api/share GET/POST/DELETE, public /shared/[token] read-only book, media gateway
+  honors ?share= for that album only; revocable ("stop sharing"). ACTION idea list
+  updated: sharing decision RESOLVED.
+- ACTION 2 (password reset) DONE: reset_tokens table, /api/auth/reset-request +
+  /api/auth/reset, /reset page, "forgot password?" on signin. In production emails
+  require RESEND_API_KEY (currently NOT set — the flow answers ok but sends
+  nothing; set the key to activate; dev shows the link on screen).
+- ACTION 3 (storage cleanup) DONE: deleteStoredFile() wired into photo delete and
+  entry delete (best effort; verified on disk locally).
+- ACTION 7 partials DONE: in-memory rate limiting on login/signup/reset-request
+  (per-IP; resets on deploy — fine at this scale), AUTH_SECRET hard-fail on Vercel
+  production, global :focus-visible outline, HEIC uploads rejected with an
+  actionable message, recordings auto-stop at 5 minutes (AI request-size limit),
+  /api/files local gateway now enforces the same session-or-share-token access
+  rules as /api/media (was unauthenticated, dev-only exposure).
+- Verified in production: shared page public 200, photo-by-token 200, wrong token
+  404, revoke kills the link; 11th rapid login 429.
+
+## Remaining known gaps (deliberate, priority order)
+
+1. RESEND_API_KEY not set → password reset emails silently no-op in production.
+2. Legacy public-store files for the first test entry (cleanup with old stores).
+3. No offline queue for recordings (upload fails on dead connection = note lost).
+4. recordedAt not editable (roadmap ACTION 7 item).
+5. Multiple babies per account unsupported (v2).
