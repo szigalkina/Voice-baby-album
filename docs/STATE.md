@@ -178,3 +178,24 @@ Rename is done everywhere. Only docs/superpowers historical files keep the old n
   `recordedAt` (ISO, validated). Journal re-sorts; book chapters recompute.
 - babies.created_at added; getBabiesForUser orders by (created_at, id) — the
   "nondeterministic default active album" gap is closed.
+
+## 2026-07-20 (incident) — AI outage: root cause + resilience added
+
+INCIDENT: all voice notes failed to process in prod. Root cause: the
+`gemini-flash-latest` alias silently rolled to Gemini 3 Flash, which HANGS
+(minutes, no response) on our audio + responseSchema request shape. Also
+learned: this key has NO quota for gemini-2.0-flash (429), and pinned
+`gemini-3-flash-preview` handles the exact same request fine in seconds.
+
+FIXES (deployed + verified: new note ready, old failed note healed via retry,
+health green):
+- GEMINI_MODEL pinned to gemini-3-flash-preview (env + code default).
+- lib/ai.ts: MODEL_CHAIN fallback (env model → gemini-3-flash-preview →
+  flash-lite-latest → flash-latest), 75s AbortSignal timeout per attempt,
+  thought-part-aware JSON extraction (extractJsonText strips fences, skips
+  thought parts).
+- lib/alert.ts: ops alert emails to owner via Resend, 1/hour cooldown; fired
+  when the whole chain fails and by the health check.
+- /api/health (db + real text-only AI ping + storage) + vercel.json daily cron
+  at 07:00 UTC → email on failure. LESSON: never trust rolling model aliases
+  in prod; pin + chain + alert.
