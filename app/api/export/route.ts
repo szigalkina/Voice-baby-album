@@ -58,6 +58,7 @@ export async function GET(req: Request) {
     const { AlbumPdf } = await import("@/lib/pdf");
     const doc = React.createElement(AlbumPdf, {
       babyName: baby.name,
+      albumTitle: baby.title,
       pages: part === "cover" ? [] : pdfPages,
       part,
     }) as React.ReactElement<import("@react-pdf/renderer").DocumentProps>;

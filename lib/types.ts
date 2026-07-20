@@ -27,4 +27,5 @@ export interface Baby {
   id: string;
   name: string;
   birthdate: string;
+  title?: string | null;
 }

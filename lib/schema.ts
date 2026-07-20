@@ -26,6 +26,8 @@ export const babies = pgTable("babies", {
   birthdate: date("birthdate").notNull(),
   // View-only share link token; null = sharing off. Rotating revokes old links.
   shareToken: text("share_token"),
+  // Custom album title shown on the cover; null = "the first year of <name>".
+  title: text("title"),
 });
 
 export const resetTokens = pgTable("reset_tokens", {

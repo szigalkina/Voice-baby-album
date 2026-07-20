@@ -58,7 +58,7 @@ export default async function SharedAlbumPage({
 
   return (
     <SharedBook
-      baby={{ id: baby.id, name: baby.name, birthdate: baby.birthdate }}
+      baby={{ id: baby.id, name: baby.name, birthdate: baby.birthdate, title: baby.title }}
       entries={album}
     />
   );

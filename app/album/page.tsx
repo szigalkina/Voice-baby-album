@@ -15,7 +15,7 @@ export default async function AlbumPage() {
   if (!baby) redirect("/onboarding");
   return (
     <>
-      <AlbumClient baby={{ id: baby.id, name: baby.name, birthdate: baby.birthdate }} />
+      <AlbumClient baby={{ id: baby.id, name: baby.name, birthdate: baby.birthdate, title: baby.title }} />
       <Nav active="album" />
     </>
   );

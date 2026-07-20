@@ -29,6 +29,9 @@ export default function AlbumClient({ baby }: { baby: Baby }) {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [shareBusy, setShareBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [title, setTitle] = useState<string | null>(baby.title ?? null);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState("");
 
   useEffect(() => {
     fetch("/api/entries")
@@ -126,6 +129,21 @@ export default function AlbumClient({ baby }: { baby: Baby }) {
       }));
   }, [entries, showAll, baby.birthdate]);
 
+  async function saveTitle() {
+    setEditingTitle(false);
+    const next = titleDraft.trim() || null;
+    if (next === title) return;
+    const res = await fetch("/api/baby", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: titleDraft }),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setTitle(data.baby.title ?? null);
+    }
+  }
+
   const tab = (v: "book" | "list", text: string) => (
     <button
       onClick={() => setView(v)}
@@ -140,8 +158,40 @@ export default function AlbumClient({ baby }: { baby: Baby }) {
   return (
     <main className="relative z-10 mx-auto w-full max-w-md flex-1 pb-32">
       <header className="pt-9 pb-5 text-center px-5">
-        <p className="label-caps text-ink-soft">the first year of</p>
-        <h1 className="font-display italic text-[40px] leading-tight">{baby.name}</h1>
+        {editingTitle ? (
+          <input
+            autoFocus
+            value={titleDraft}
+            onChange={(e) => setTitleDraft(e.target.value)}
+            onBlur={saveTitle}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") saveTitle();
+              if (e.key === "Escape") setEditingTitle(false);
+            }}
+            placeholder={`the first year of ${baby.name}`}
+            className="w-full bg-transparent text-center font-display italic text-[30px] leading-tight outline-none border-b border-ink pb-1"
+          />
+        ) : (
+          <button
+            onClick={() => {
+              setTitleDraft(title ?? "");
+              setEditingTitle(true);
+            }}
+            title="Tap to rename the album"
+            className="block w-full"
+          >
+            {title ? (
+              <h1 className="font-display italic text-[34px] leading-tight">{title}</h1>
+            ) : (
+              <>
+                <p className="label-caps text-ink-soft">the first year of</p>
+                <h1 className="font-display italic text-[40px] leading-tight">
+                  {baby.name}
+                </h1>
+              </>
+            )}
+          </button>
+        )}
         <p className="label-caps text-ink-soft mt-1">{ageLabel(baby.birthdate)}</p>
         <div className="mt-6 flex items-center justify-center gap-8">
           {tab("book", "book")}

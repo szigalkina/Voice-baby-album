@@ -61,7 +61,7 @@ export default function JournalClient({ baby }: { baby: Baby }) {
 
   return (
     <main className="relative z-10 mx-auto w-full max-w-md flex-1 px-5 pb-32">
-      <header className="flex items-end justify-between pt-8 pb-2">
+      <header className="pt-8 pb-2">
         <div>
           <p className="label-caps text-ink-soft">the journal of</p>
           <h1 className="font-display italic text-[34px] leading-tight -mt-0.5">
@@ -69,11 +69,6 @@ export default function JournalClient({ baby }: { baby: Baby }) {
           </h1>
           <p className="label-caps text-ink-soft mt-1">{ageLabel(baby.birthdate)}</p>
         </div>
-        <form action="/api/auth/signout" method="post">
-          <button className="label-caps text-ink-soft underline underline-offset-4 pb-1">
-            sign out
-          </button>
-        </form>
       </header>
 
       <section className="py-8">

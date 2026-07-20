@@ -66,10 +66,12 @@ export type PdfPart = "all" | "interior" | "cover";
 
 export function AlbumPdf({
   babyName,
+  albumTitle,
   pages,
   part = "all",
 }: {
   babyName: string;
+  albumTitle?: string | null;
   pages: PdfPageData[];
   part?: PdfPart;
 }) {
@@ -79,8 +81,14 @@ export function AlbumPdf({
     <Document title={`${babyName} — Voice Baby Album`}>
       {withCover && (
         <Page size={[PAGE, PAGE]} style={[s.page, { justifyContent: "center" }]} wrap={false}>
-          <Text style={[s.month, { marginBottom: 18 }]}>THE FIRST YEAR OF</Text>
-          <Text style={[s.titleBig, { fontSize: 44 }]}>{babyName}</Text>
+          {albumTitle ? (
+            <Text style={[s.titleBig, { fontSize: 38 }]}>{albumTitle}</Text>
+          ) : (
+            <>
+              <Text style={[s.month, { marginBottom: 18 }]}>THE FIRST YEAR OF</Text>
+              <Text style={[s.titleBig, { fontSize: 44 }]}>{babyName}</Text>
+            </>
+          )}
         </Page>
       )}
       {withPages &&

@@ -18,7 +18,7 @@ export default function OnboardingPage() {
     e.preventDefault();
     setState("saving");
     setError(null);
-    const res = await fetch("/api/baby", {
+    const res = await fetch("/api/albums", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, birthdate }),
@@ -63,6 +63,11 @@ export default function OnboardingPage() {
           {state === "saving" ? "saving…" : "start the album"}
         </button>
         {error && <p className="mt-4 text-sm text-center text-umber">{error}</p>}
+        <p className="mt-6 text-center">
+          <a href="/account" className="label-caps text-ink-soft underline underline-offset-4">
+            back to account
+          </a>
+        </p>
       </form>
     </main>
   );

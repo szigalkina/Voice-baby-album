@@ -30,8 +30,14 @@ export default function SharedBook({
   return (
     <main className="relative z-10 mx-auto w-full max-w-md flex-1 pb-16">
       <header className="pt-10 pb-6 text-center px-5">
-        <p className="label-caps text-ink-soft">the first year of</p>
-        <h1 className="font-display italic text-[40px] leading-tight">{baby.name}</h1>
+        {baby.title ? (
+          <h1 className="font-display italic text-[34px] leading-tight">{baby.title}</h1>
+        ) : (
+          <>
+            <p className="label-caps text-ink-soft">the first year of</p>
+            <h1 className="font-display italic text-[40px] leading-tight">{baby.name}</h1>
+          </>
+        )}
         <p className="label-caps text-ink-soft mt-1">{ageLabel(baby.birthdate)}</p>
       </header>
 

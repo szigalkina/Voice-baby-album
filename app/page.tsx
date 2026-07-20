@@ -15,7 +15,7 @@ export default async function Home() {
   if (!baby) redirect("/onboarding");
   return (
     <>
-      <JournalClient baby={{ id: baby.id, name: baby.name, birthdate: baby.birthdate }} />
+      <JournalClient baby={{ id: baby.id, name: baby.name, birthdate: baby.birthdate, title: baby.title }} />
       <Nav active="journal" />
     </>
   );
