@@ -320,3 +320,32 @@ Built after the two 07-20 incidents, each targeting a blind spot they exposed:
   file for stale overrides.
 - AI quota note: quick health = 1 Gemini call per 30 min (~48/day) — well
   within free tier; full health adds ~5 pings once daily.
+
+## 2026-07-21 — GDPR: account deletion, data export, privacy rights
+
+Owner asked for account deletion + GDPR guidelines. Shipped (b357f57):
+- lib/albums.ts deleteAlbumDeep(db, babyId): THE one audited deep-delete path
+  (files best-effort → photos → entries → members → invites → album row;
+  entries.babyId has NO cascade so order matters). /api/albums/[id] DELETE now
+  uses it too.
+- DELETE /api/account: session + CURRENT PASSWORD required (403 otherwise),
+  rate-limited 3/hr/IP, maxDuration 300 (many files). Erases all OWNED albums
+  deep, membership rows, reset tokens, user row; clears vba_session +
+  vba_album cookies. Albums the user only joined as member are untouched
+  except the membership link — their data belongs to the owner.
+- GET /api/account/export: JSON attachment (account, albums incl. joined,
+  entries with transcript/title/summary/quote/milestone/dates, photo refs) —
+  GDPR portability; media itself downloadable in-app + PDF export.
+- Account page "your data" section: download my data + delete account with
+  inline password confirm, umber styling, unambiguous copy.
+- Privacy page: "Your rights (GDPR)" section (access/portability,
+  rectification, erasure, complaint), in-app deletion documented (was "email
+  us"), FIXED stale claim about invite codes (removed feature) → view-only
+  share links. Last-updated bumped.
+- VERIFIED locally AND in prod with throwaway accounts: signup → album → real
+  audio entry → export JSON correct → wrong password 403 → delete 200 → login
+  401, audio file physically gone (checked on disk locally; blob del via the
+  same code path in prod). Tests 25 passing.
+- Note: no admin/backup copy of a deleted account exists — deletion is real.
+  Provider-level backups (Neon PITR ~7 days on free tier) age out on their
+  own schedule; privacy page says exactly that.
