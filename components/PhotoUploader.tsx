@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { Photo } from "@/lib/types";
+import { reportClientError } from "@/lib/report";
 
 // The platform rejects request bodies over ~4.5MB with a plain-text error the
 // client can't parse — modern phone photos are routinely bigger. Downscale in
@@ -72,7 +73,9 @@ export default function PhotoUploader({
         added.push(...data.photos);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Upload failed");
+      const msg = e instanceof Error ? e.message : "Upload failed";
+      setError(msg);
+      reportClientError(`photo upload: ${msg}`);
     } finally {
       if (added.length) onAdded(added);
       setBusy(false);

@@ -285,3 +285,38 @@ hit during an outage also emails the owner (1/hr cooldown). Owner's "Summer
 2026" album is on her REAL account (test account has "Mila" + "Sardinia,
 summer 2027"), so healed-but-failed notes there can only be retried by her
 tapping "try again" — the button now works in seconds.
+
+## 2026-07-21 — Proactive monitoring & self-healing (owner: "detect ahead, fix")
+
+Built after the two 07-20 incidents, each targeting a blind spot they exposed:
+- /api/health REWRITTEN, two depths. QUICK (default): db ping + zombie
+  auto-heal (processing >15min → failed, so retry appears without anyone
+  intervening) + a REAL audio canary — lib/canary.ts embeds a 1.5s spoken m4a
+  ("she smiled today", ~9KB; regen recipe in the file header) run through the
+  actual analyzeVoiceNote chain, with latency reported and >25s flagged.
+  FULL (?full=1 or vercel-cron UA — the daily Vercel cron auto-selects it):
+  adds per-model text pings for the whole MODEL_CHAIN (warns when zero
+  fallbacks are alive) and a storage write→read→delete round-trip.
+  Failures → 503 + email; degradations → 200 + "health warning" email.
+  maxDuration 300 so a misbehaving chain is reported, not killed mid-check.
+- lib/alert.ts cooldown is now PER SUBJECT (1/hr each) so "AI down" and
+  "client error" don't suppress each other.
+- CLIENT ERROR REPORTING: /api/client-error (IP rate-limited 5/hr, 1 email/hr
+  via cooldown) + components/ErrorBeacon.tsx in the root layout (uncaught
+  errors + unhandled rejections, max 2/page-load, benign noise filtered) +
+  lib/report.ts wired into the catch-paths the user actually sees (photo
+  upload, voice upload, entry save). The 07-20 photo bug would have emailed
+  the owner the exact Safari message on first occurrence.
+- GITHUB ACTIONS (repo had none): ci.yml = tsc + vitest on every push/PR;
+  health.yml = curl the prod health endpoint every 30 min (Vercel Hobby crons
+  are daily-only; the endpoint does its own emailing — a red Action is a
+  second signal). NOTE: GitHub pauses schedules after ~60 days of repo
+  inactivity.
+- MYSTERY SOLVED by the new per-model report: local .env.local still had
+  GEMINI_MODEL=gemini-flash-latest (pre-incident value) — that's why 07-20
+  local E2E runs were slow (45-60s primary timeouts); it was NOT Next dev
+  fetch patching. Fixed to gemini-3-flash-preview; .env.example already
+  documented the pin. Lesson: after pinning a model in prod, grep EVERY env
+  file for stale overrides.
+- AI quota note: quick health = 1 Gemini call per 30 min (~48/day) — well
+  within free tier; full health adds ~5 pings once daily.

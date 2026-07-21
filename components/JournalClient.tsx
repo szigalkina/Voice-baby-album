@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Baby, Entry } from "@/lib/types";
 import { currentMonthLabel } from "@/lib/months";
+import { reportClientError } from "@/lib/report";
 import Recorder from "./Recorder";
 import EntryCard from "./EntryCard";
 import EditEntrySheet from "./EditEntrySheet";
@@ -65,7 +66,9 @@ export default function JournalClient({ baby }: { baby: Baby }) {
       if (newest && Date.now() - Date.parse(newest.recordedAt) < 2 * 60_000) {
         setEntries(list);
       } else {
-        setError(e instanceof Error ? e.message : "Something went wrong, try again?");
+        const msg = e instanceof Error ? e.message : "Something went wrong, try again?";
+        setError(msg);
+        reportClientError(`voice note upload: ${msg}`);
       }
     } finally {
       setUploading(false);

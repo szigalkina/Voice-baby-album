@@ -1,0 +1,19 @@
+name: health
+
+# Vercel Hobby crons are daily-only, so GitHub does the frequent heartbeat.
+# The endpoint itself emails the owner on failure (and on warnings), so this
+# job only needs to hit it; a red run here is a second, independent signal.
+# Note: GitHub pauses scheduled workflows after ~60 days without repo activity.
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: quick health check (db + zombie heal + real audio canary)
+        run: |
+          curl -fsS --max-time 240 https://voice-memory-album.vercel.app/api/health

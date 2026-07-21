@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { Entry } from "@/lib/types";
+import { reportClientError } from "@/lib/report";
 import PhotoUploader from "./PhotoUploader";
 
 export default function EditEntrySheet({
@@ -56,7 +57,9 @@ export default function EditEntrySheet({
       onSaved({ ...entry, ...data.entry, photos });
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Couldn't save");
+      const msg = e instanceof Error ? e.message : "Couldn't save";
+      setError(msg);
+      reportClientError(`entry save: ${msg}`);
       setBusy(false);
     }
   }

@@ -3,14 +3,17 @@
 const OWNER_EMAIL = "szigalkina@gmail.com";
 const ALERT_COOLDOWN_MS = 60 * 60 * 1000;
 
-const g = globalThis as typeof globalThis & { __vbaLastAlert?: number };
+// Cooldown per subject so distinct problems (AI down vs client error) can
+// each alert once an hour without drowning one another out.
+const g = globalThis as typeof globalThis & { __vbaLastAlert?: Record<string, number> };
 
 export async function sendOpsAlert(subject: string, detail: string): Promise<void> {
   try {
     if (!process.env.RESEND_API_KEY) return;
     const now = Date.now();
-    if (g.__vbaLastAlert && now - g.__vbaLastAlert < ALERT_COOLDOWN_MS) return;
-    g.__vbaLastAlert = now;
+    const last = (g.__vbaLastAlert ??= {});
+    if (last[subject] && now - last[subject] < ALERT_COOLDOWN_MS) return;
+    last[subject] = now;
     await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {

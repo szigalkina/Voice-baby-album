@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Marck_Script, Outfit } from "next/font/google";
+import ErrorBeacon from "@/components/ErrorBeacon";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -44,7 +45,10 @@ export default function RootLayout({
       lang="en"
       className={`${cormorant.variable} ${outfit.variable} ${marck.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col relative">{children}</body>
+      <body className="min-h-full flex flex-col relative">
+        <ErrorBeacon />
+        {children}
+      </body>
     </html>
   );
 }
