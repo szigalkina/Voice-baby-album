@@ -35,6 +35,10 @@ export default function AccountClient() {
   const [editDate, setEditDate] = useState("");
   const [editBusy, setEditBusy] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/albums")
@@ -115,6 +119,32 @@ export default function AccountClient() {
       setEditError(e instanceof Error ? e.message : "Couldn't delete");
     } finally {
       setEditBusy(false);
+    }
+  }
+
+  async function deleteAccount(e: React.FormEvent) {
+    e.preventDefault();
+    if (
+      !confirm(
+        "Delete your account forever? Every album you own — all recordings, transcripts and photos — will be permanently erased. This cannot be undone."
+      )
+    )
+      return;
+    setDeleteBusy(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch("/api/account", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(data?.error ?? "Couldn't delete the account");
+      router.push("/signin");
+      router.refresh();
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : "Couldn't delete the account");
+      setDeleteBusy(false);
     }
   }
 
@@ -291,6 +321,69 @@ export default function AccountClient() {
               {supportState === "busy" ? "sending…" : "send message"}
             </button>
             {supportError && <p className="mt-2 text-sm text-umber">{supportError}</p>}
+          </form>
+        )}
+      </section>
+
+      <section className="mt-12 border-t border-hairline pt-8">
+        <h2 className="label-caps text-ink mb-3">your data</h2>
+        <p className="text-sm text-ink-soft">
+          Everything here is yours. Download it, or erase it all.
+        </p>
+        <div className="mt-3 flex items-center gap-6">
+          <a
+            href="/api/account/export"
+            className="label-caps text-ink underline underline-offset-4"
+          >
+            download my data
+          </a>
+          <button
+            onClick={() => {
+              setDeleteOpen((v) => !v);
+              setDeleteError(null);
+            }}
+            className="label-caps text-umber underline underline-offset-4"
+          >
+            delete account
+          </button>
+        </div>
+        {deleteOpen && (
+          <form
+            onSubmit={deleteAccount}
+            className="mt-4 border border-hairline rounded-[3px] bg-paper p-5 fade-up"
+          >
+            <p className="text-sm">
+              This erases your account and every album you own — recordings,
+              transcripts, photos, everything — immediately and forever.
+              Albums you joined by invitation stay with their owner.
+            </p>
+            <label className="label-caps text-ink-soft block mb-1.5 mt-4">
+              confirm with your password
+            </label>
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              required
+              className="w-full rounded-[2px] border border-hairline bg-paper px-4 py-3 outline-none focus:border-ink transition-colors"
+            />
+            {deleteError && <p className="mt-3 text-sm text-umber">{deleteError}</p>}
+            <div className="mt-4 flex items-center justify-end gap-4">
+              <button
+                type="button"
+                onClick={() => setDeleteOpen(false)}
+                className="label-caps text-ink-soft"
+              >
+                cancel
+              </button>
+              <button
+                type="submit"
+                disabled={deleteBusy || !deletePassword}
+                className="bg-umber text-bone label-caps px-5 py-3 rounded-[2px] active:scale-[0.98] transition disabled:opacity-40"
+              >
+                {deleteBusy ? "erasing…" : "delete forever"}
+              </button>
+            </div>
           </form>
         )}
       </section>

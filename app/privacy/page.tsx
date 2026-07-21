@@ -4,7 +4,7 @@ export default function PrivacyPage() {
   return (
     <main className="relative z-10 mx-auto w-full max-w-md flex-1 px-6 py-10 text-[15px] leading-relaxed">
       <h1 className="font-display text-3xl font-semibold mb-6">Privacy Policy</h1>
-      <p className="text-ink-soft text-sm mb-6">Last updated: 19 July 2026</p>
+      <p className="text-ink-soft text-sm mb-6">Last updated: 21 July 2026</p>
 
       <section className="space-y-4">
         <p>
@@ -36,20 +36,41 @@ export default function PrivacyPage() {
           <li>No advertising, no trackers, no analytics profiles.</li>
           <li>We never sell or share your data with anyone.</li>
           <li>
-            Nobody can see your album except the accounts you invite with an invite code.
+            Nobody can see your album unless you share its view-only link — and you
+            can stop sharing at any time.
           </li>
         </ul>
 
-        <h2 className="font-display text-xl font-semibold pt-2">Deletion</h2>
-        <p>
-          You can delete any memory (recording, transcript, photos) in the app at any
-          time. To delete your entire account and all data, email us and we&rsquo;ll do it
-          promptly.
-        </p>
+        <h2 className="font-display text-xl font-semibold pt-2">Your rights (GDPR)</h2>
+        <ul className="list-disc pl-5 space-y-1.5">
+          <li>
+            <span className="font-medium">Access &amp; portability</span> — download
+            everything we hold about you as one file: Account →&nbsp;your data
+            →&nbsp;&ldquo;download my data&rdquo;. Recordings play and download in the
+            app, and any album exports as a print-ready PDF.
+          </li>
+          <li>
+            <span className="font-medium">Rectification</span> — every title, message,
+            date and photo is editable in the app.
+          </li>
+          <li>
+            <span className="font-medium">Erasure</span> — delete any memory or album at
+            any time. To erase everything: Account →&nbsp;your data →&nbsp;&ldquo;delete
+            account&rdquo;. It removes your account and all albums you own — recordings,
+            transcripts, photos and files — immediately and permanently. No copies are
+            kept; backups held by our hosting providers expire on their standard
+            schedules.
+          </li>
+          <li>
+            <span className="font-medium">Complaint</span> — you may lodge a complaint
+            with your local data-protection authority, though we&rsquo;d love the chance
+            to fix things first.
+          </li>
+        </ul>
 
         <h2 className="font-display text-xl font-semibold pt-2">Contact</h2>
         <p>
-          Questions or deletion requests:{" "}
+          Questions or data requests:{" "}
           <a href="mailto:szigalkina@gmail.com" className="underline underline-offset-2">
             szigalkina@gmail.com
           </a>

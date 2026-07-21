@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { eq, inArray } from "drizzle-orm";
-import { babies, babyMembers, entries, invites, photos } from "@/lib/schema";
+import { eq } from "drizzle-orm";
+import { babies } from "@/lib/schema";
 import { getDb } from "@/lib/db";
 import { ALBUM_COOKIE, requireUser } from "@/lib/guard";
-import { deleteStoredFile } from "@/lib/storage";
+import { deleteAlbumDeep } from "@/lib/albums";
 
 // Only the album's creator can rename or delete it (members just view/add).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -61,22 +61,7 @@ export async function DELETE(
     if (!(await ownedBaby(db, userId, id))) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
-    const albumEntries = await db.select().from(entries).where(eq(entries.babyId, id));
-    const entryIds = albumEntries.map((e: typeof entries.$inferSelect) => e.id);
-    const pics = entryIds.length
-      ? await db.select().from(photos).where(inArray(photos.entryId, entryIds))
-      : [];
-    // Stored files first (best effort — deleteStoredFile swallows errors),
-    // then rows; entries.babyId has no cascade so the order matters.
-    for (const p of pics) await deleteStoredFile(p.blobUrl);
-    for (const e of albumEntries) await deleteStoredFile(e.audioUrl);
-    if (entryIds.length) {
-      await db.delete(photos).where(inArray(photos.entryId, entryIds));
-    }
-    await db.delete(entries).where(eq(entries.babyId, id));
-    await db.delete(babyMembers).where(eq(babyMembers.babyId, id));
-    await db.delete(invites).where(eq(invites.babyId, id));
-    await db.delete(babies).where(eq(babies.id, id));
+    await deleteAlbumDeep(db, id);
     const jar = await cookies();
     if (jar.get(ALBUM_COOKIE)?.value === id) jar.delete(ALBUM_COOKIE);
     return NextResponse.json({ ok: true });
