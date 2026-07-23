@@ -349,3 +349,16 @@ Owner asked for account deletion + GDPR guidelines. Shipped (b357f57):
 - Note: no admin/backup copy of a deleted account exists — deletion is real.
   Provider-level backups (Neon PITR ~7 days on free tier) age out on their
   own schedule; privacy page says exactly that.
+
+## 2026-07-22 — Alert email spam fixed (durable cooldowns)
+
+Owner was getting "AI is slow" health warnings hourly: the per-subject alert
+cooldown lived in instance memory and reset on every serverless cold start.
+Fixed (b30d98c): ops_alerts table (subject pk, last_sent_at — schema + DDL)
+checked/updated by sendOpsAlert with in-memory fallback if the DB itself is
+down; FAILURE_COOLDOWN 6h, WARNING_COOLDOWN 24h (health warnings pass the
+24h one). health.yml workflow no longer fails the run on a 503 — the
+endpoint owns alerting. Tests 25→29 (cooldown suite hits real PGlite).
+Verified in prod: deploy green, ops_alerts exists (0 rows until the next
+real alert), canary 17.6s (Gemini still sluggish — under the 25s warning
+threshold; chain absorbing it).
