@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { and, eq, lt, sql } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { entries } from "@/lib/schema";
-import { sendOpsAlert } from "@/lib/alert";
+import { sendOpsAlert, WARNING_COOLDOWN_MS } from "@/lib/alert";
 import { analyzeVoiceNote, MODEL_CHAIN } from "@/lib/ai";
 import { CANARY_AUDIO_B64, CANARY_MIME } from "@/lib/canary";
 
@@ -137,9 +137,12 @@ export async function GET(req: Request) {
       `Health status:\n${JSON.stringify(status, null, 2)}\n\nChecked by: ${origin}/api/health`
     );
   } else if (warnings.length) {
+    // Degradations repeat for hours (e.g. a slow model) — once a day is
+    // informative, once an hour is spam.
     await sendOpsAlert(
       "health warning (app still working)",
-      `${warnings.join("\n")}\n\nFull status:\n${JSON.stringify(status, null, 2)}\n\nChecked by: ${origin}/api/health`
+      `${warnings.join("\n")}\n\nFull status:\n${JSON.stringify(status, null, 2)}\n\nChecked by: ${origin}/api/health`,
+      WARNING_COOLDOWN_MS
     );
   }
   return NextResponse.json({ ok, warnings, ...status }, { status: ok ? 200 : 503 });

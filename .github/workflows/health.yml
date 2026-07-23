@@ -14,6 +14,8 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
+      # Never fail the run: the endpoint emails the owner itself (with durable
+      # cooldowns) — a red workflow would only add GitHub notification noise.
       - name: quick health check (db + zombie heal + real audio canary)
         run: |
-          curl -fsS --max-time 240 https://voice-memory-album.vercel.app/api/health
+          curl -sS --max-time 240 https://voice-memory-album.vercel.app/api/health || true

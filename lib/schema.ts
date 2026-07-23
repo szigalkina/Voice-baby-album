@@ -53,6 +53,13 @@ export const entries = pgTable("entries", {
   status: text("status").notNull().default("processing"), // processing | ready | failed
 });
 
+// Durable ops-alert cooldowns: in-memory cooldowns reset on every serverless
+// cold start, which re-sent the "same" alert email many times per day.
+export const opsAlerts = pgTable("ops_alerts", {
+  subject: text("subject").primaryKey(),
+  lastSentAt: timestamp("last_sent_at").notNull(),
+});
+
 export const photos = pgTable("photos", {
   id: uuid("id").primaryKey().defaultRandom(),
   entryId: uuid("entry_id").notNull().references(() => entries.id, { onDelete: "cascade" }),
