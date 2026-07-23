@@ -33,6 +33,9 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  // Android: shrink the viewport when the keyboard opens so dvh-sized sheets
+  // keep their action bar visible above it (iOS ignores this).
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({

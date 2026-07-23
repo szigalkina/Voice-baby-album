@@ -27,17 +27,21 @@ function Print({ photo, className = "" }: { photo: Photo; className?: string }) 
 }
 
 // Squares, 2x2 max. Grid scales with how many photos the moment has.
+// Widths are capped by the AVAILABLE HEIGHT too (cqh = 1% of the photo
+// area, which is a size container): long titles/messages used to leave less
+// room than a width-only square needed, and the frames overflowed into the
+// date zone at the page bottom.
 function PhotoGrid({ photos }: { photos: Photo[] }) {
   if (photos.length === 1) {
     return (
-      <div className="mx-auto w-[62%]">
+      <div className="mx-auto w-[min(62%,98cqh)]">
         <Print photo={photos[0]} className="aspect-square" />
       </div>
     );
   }
   if (photos.length === 2) {
     return (
-      <div className="grid grid-cols-2 gap-2.5 w-[88%] mx-auto">
+      <div className="grid grid-cols-2 gap-2.5 w-[min(88%,196cqh)] mx-auto">
         {photos.map((p) => (
           <Print key={p.id} photo={p} className="aspect-square" />
         ))}
@@ -45,7 +49,7 @@ function PhotoGrid({ photos }: { photos: Photo[] }) {
     );
   }
   return (
-    <div className="grid grid-cols-2 gap-2 w-[64%] mx-auto">
+    <div className="grid grid-cols-2 gap-2 w-[min(64%,94cqh)] mx-auto">
       {photos.slice(0, 4).map((p, i) => (
         <Print
           key={p.id}
@@ -109,10 +113,12 @@ export default function BookPage({
       {photos.length > 0 ? (
         <div className={`flex-1 flex flex-col px-6 ${page.monthLabel ? "pt-3" : "pt-8"} pb-16`}>
           <div className="text-center mb-4">
-            <h3 className="font-display italic text-[24px] leading-tight">{entry.title}</h3>
+            {/* Tight clamps on photo pages: every text line steals height
+                from the photos, and the date zone below is non-negotiable. */}
+            <h3 className="font-display italic text-[24px] leading-tight line-clamp-2">{entry.title}</h3>
             <p
               className={`font-hand text-[17px] leading-snug text-ink/75 mt-1.5 ${
-                photos.length > 2 ? "line-clamp-3" : "line-clamp-4"
+                photos.length > 2 ? "line-clamp-2" : "line-clamp-3"
               }`}
             >
               {entry.summary}
@@ -123,8 +129,8 @@ export default function BookPage({
               </div>
             )}
           </div>
-          <div className="flex-1 flex items-center">
-            <div className="w-full">
+          <div className="flex-1 min-h-0 [container-type:size]">
+            <div className="h-full flex flex-col justify-center">
               <PhotoGrid photos={photos} />
             </div>
           </div>
@@ -142,8 +148,9 @@ export default function BookPage({
       )}
 
       {/* THE date rule: identical font and identical position on every page —
-          bottom middle, semi central, never in the content flow. */}
-      <p className="absolute bottom-9 inset-x-0 label-caps !text-[9px] text-ink-soft text-center pointer-events-none">
+          bottom middle, semi central, never in the content flow. Kept low
+          (bottom-5) so it never crowds the photo frames above. */}
+      <p className="absolute bottom-5 inset-x-0 label-caps !text-[9px] text-ink-soft text-center pointer-events-none">
         {capsDate(entry.recordedAt)}
       </p>
 

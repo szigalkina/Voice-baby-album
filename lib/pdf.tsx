@@ -35,7 +35,9 @@ const s = StyleSheet.create({
   print: { backgroundColor: "#ffffff", padding: 5, borderWidth: 0.5, borderColor: "#d9d3c9" },
   img: { objectFit: "cover" },
   pageNo: { position: "absolute", bottom: 16, fontFamily: "Helvetica", fontSize: 7, color: SOFT },
-  dateAbs: { position: "absolute", bottom: 34, left: 0, right: 0, fontFamily: "Helvetica", fontSize: 7, letterSpacing: 2, color: SOFT, textAlign: "center" },
+  // bottom 26pt ≈ the app page's bottom-5 proportionally — date sits low,
+  // clear of the photo frames (owner request 2026-07-22).
+  dateAbs: { position: "absolute", bottom: 26, left: 0, right: 0, fontFamily: "Helvetica", fontSize: 7, letterSpacing: 2, color: SOFT, textAlign: "center" },
 });
 
 function capsDate(iso: string) {
@@ -101,8 +103,10 @@ export function AlbumPdf({
             )}
             {images.length > 0 ? (
               <>
-                <Text style={s.title}>{entry.title}</Text>
-                <Text style={s.message}>{entry.summary}</Text>
+                {/* Clamped like the app page — unclamped text pushed the
+                    fixed-size photo block into the date zone. */}
+                <Text style={[s.title, { maxLines: 2 }]}>{entry.title}</Text>
+                <Text style={[s.message, { maxLines: 4 }]}>{entry.summary}</Text>
                 {entry.isMilestone && <Text style={s.milestone}>— MILESTONE —</Text>}
                 <View style={{ flex: 1, justifyContent: "center" }}>
                   <PhotoBlock images={images} />

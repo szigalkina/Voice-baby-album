@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import type { Entry } from "@/lib/types";
 import { reportClientError } from "@/lib/report";
@@ -73,12 +74,15 @@ export default function EditEntrySheet({
     }
   }
 
-  return (
+  // Portal to <body>: the journal <main> creates a z-10 stacking context, so
+  // no z-index inside it can beat the fixed z-20 nav — rendered in place, the
+  // nav painted OVER the sheet's save bar on phones.
+  return createPortal(
     <div className="fixed inset-0 z-40 flex items-end justify-center">
       <button aria-label="Close" onClick={onClose} className="absolute inset-0 bg-ink/50" />
       {/* dvh (not vh): on phones the URL bar eats part of 100vh and the sheet's
           bottom actions end up unreachable behind it */}
-      <div className="relative w-full max-w-md rounded-t-[6px] bg-bone border-t border-hairline p-6 pb-[calc(2.25rem+env(safe-area-inset-bottom))] max-h-[85dvh] overflow-y-auto overscroll-contain fade-up">
+      <div className="relative w-full max-w-md rounded-t-[6px] bg-bone border-t border-hairline p-6 pb-0 max-h-[85dvh] overflow-y-auto overscroll-contain fade-up">
         <div className="mx-auto mb-5 h-px w-10 bg-ink/25" />
         <h2 className="font-display italic text-[24px] mb-5">edit this page</h2>
 
@@ -138,7 +142,9 @@ export default function EditEntrySheet({
 
         {error && <p className="mt-3 text-sm text-umber">{error}</p>}
 
-        <div className="mt-8 flex items-center justify-between">
+        {/* Sticky action bar: always visible at the sheet's bottom — on phones
+            the end of the scroll used to hide behind the browser toolbar. */}
+        <div className="sticky bottom-0 -mx-6 mt-8 px-6 pt-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] bg-bone border-t border-hairline flex items-center justify-between">
           <button
             onClick={remove}
             className="label-caps text-umber underline underline-offset-4"
@@ -159,6 +165,7 @@ export default function EditEntrySheet({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
